@@ -1,0 +1,21 @@
+{
+  "name": "fsld",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "babel-standalone": "^6.26.0",
+    "bootstrap": "^4.3.1",
+    "cors": "^2.8.5",
+    "react-dom": "^16.8.6",
+    "react-scripts": "^3.0.1",
+    "react-toastify": "^5.2.0",
+    "reactstrap": "^8.0.0"
+  },
+  "devDependencies": {}
+}
