@@ -3,6 +3,8 @@ import axios from 'axios';
 import { Progress } from 'reactstrap';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import './App.css'
+
 
 class App extends Component {
   
@@ -11,7 +13,14 @@ class App extends Component {
     this.state = {
       selectedFile: null,
       fileField: 'Upload File Here',
-      loaded:0
+      loaded:0,
+      percent:-1,
+      show_file_upload_progress: false,
+      show_spinner: false,
+      show_stage1_header: false,
+      show_stage1_stats: false,
+      loading: false,
+      stage: 'face tracking'
     }
   }
 
@@ -31,17 +40,28 @@ class App extends Component {
       console.log('File is null')
     }
     else {
+      this.setState({show_file_upload_progress: true,
+                     show_spinner: true})
       const data = new FormData() 
       data.append('file', this.state.selectedFile)
 
-      axios.post("http://localhost:8000/v1/predict", data, {
+      axios.post("http://localhost:8000/dev/face_percent", data, {
+        
         onUploadProgress: ProgressEvent => {
           this.setState({
                loaded: (ProgressEvent.loaded / ProgressEvent.total*100),
           })
         }
-      }).then(toast('Upload Successful!'))
-      
+
+      }).then(res => {
+        const percent = res.data['percent']*100;
+        return percent
+      }).then(percent => {
+        this.setState({percent, stage:'speech to text', show_stage1_stats:true});
+        toast(this.state.percent)
+
+      })
+
     }
   }
 
@@ -80,12 +100,30 @@ class App extends Component {
             </div>
           </div>
         </form>
-        <div className="form-group col-md-5 center-div mt-3">
-            <Progress max="100" color="success" value={this.state.loaded} >{Math.round(this.state.loaded,2) }%</Progress>
-        </div>
         <div className="form-group">
          <ToastContainer />
         </div>
+        { this.state.show_file_upload_progress ?
+          <div className="form-group col-md-5 center-div mt-3">
+              <Progress max="100" color="success" value={this.state.loaded} >{Math.round(this.state.loaded,2) }%</Progress>
+          </div>
+          :
+          <div></div>
+        }
+
+          <div className={this.state.show_stage1_stats?'fadeInText':'fadeOutText'}>
+            <h2>Stage 1</h2>
+            <p>Face tracking complete. A face was detected in <b>{this.state.percent.toFixed(2)}%</b> of frames.</p>
+          </div>
+
+          <div className={this.state.show_spinner?'fadeInSpinner':'fadeOutSpinner'}>
+          
+            <img className="row" src={process.env.PUBLIC_URL + "spinner.gif"}/>
+            <p>Running <b>{this.state.stage}</b>...</p>
+          </div>
+
+          
+
       </div>
     )
   }

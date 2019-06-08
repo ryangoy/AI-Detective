@@ -1,0 +1,36 @@
+.fadeOutSpinner{
+	 margin: auto;
+     opacity:0;
+     width:0px;
+     height:0px;
+     transition: width 2s 2s, height 2s 2s, opacity 2s;
+
+}
+.fadeInSpinner{
+	 margin: auto;
+     opacity:1;
+     width:200px;
+     height:200px;
+     transition: width 2s, height 2s, opacity 2s 2s;
+
+}
+
+.fadeOutText{
+	 margin: auto;
+     opacity:0;
+     width:0px;
+     height:0px;
+     transition: width 2s 2s, height 2s 2s, opacity 2s;
+
+}
+.fadeInText{
+	 margin: auto;
+	 margin-top: 50px;
+	 margin-bottom: -30px;
+     opacity:1;
+     width:550px;
+     height:100px;
+
+     transition: width 2s, height 2s, opacity 2s 2s;
+
+}
