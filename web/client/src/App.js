@@ -112,8 +112,8 @@ class App extends Component {
         }
 
           <div className={this.state.show_stage1_stats?'fadeInText':'fadeOutText'}>
-            <h2>Stage 1</h2>
-            <p>Face tracking complete. A face was detected in <b>{this.state.percent.toFixed(2)}%</b> of frames.</p>
+            <h2>Stage 1 Complete</h2>
+            <p>Face tracking finished successfully. A face was detected in <b>{this.state.percent.toFixed(2)}%</b> of frames.</p>
           </div>
 
           <div className={this.state.show_spinner?'fadeInSpinner':'fadeOutSpinner'}>
