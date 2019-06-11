@@ -1,0 +1,44 @@
+service: lie-detector-ryan
+
+frameworkVersion: ">=1.2.0 <2.0.0"
+
+package:
+  exclude:
+    - "**/*"
+  include:
+    - ../lie_detector/**/*
+    - server/server.py
+provider:
+  name: aws
+  region: us-west-2
+  runtime: python3.6
+  memorysize: 2048
+  timeout: 60
+  versionFunctions: false
+
+functions:
+  api:
+    handler: wsgi_handler.handler
+    events:
+      - http: ANY /
+      - http: ANY {proxy+}
+
+plugins:
+  - serverless-python-requirements
+  - serverless-wsgi
+
+custom:
+  wsgi:
+    app: app.app
+    packRequirements: false
+  pythonRequirements:
+    dockerizePip: true
+    slim: true
+    slimPatterns:
+      - "**/*.egg-info*"
+      - "**/doc"
+      - "**/tensorboard"
+      - "**/tensorflow/contrib"
+      - "**/tests"
+    strip: false
+    zip: true
