@@ -17,42 +17,38 @@ from lie_detector.datasets.dataset import _download_raw_dataset, Dataset, _parse
 
 SAMPLE_TO_BALANCE = True  # If true, take at most the mean number of instances per class.
 
-RAW_DATA_DIRNAME = Dataset.data_dirname() / 'raw' / 'emnist'
+RAW_DATA_DIRNAME = Dataset.data_dirname() / 'raw' / 'trial'
 METADATA_FILENAME = RAW_DATA_DIRNAME / 'metadata.toml'
 
-PROCESSED_DATA_DIRNAME = Dataset.data_dirname() / 'processed' / 'emnist'
+PROCESSED_DATA_DIRNAME = Dataset.data_dirname() / 'processed' / 'trial'
 PROCESSED_DATA_FILENAME = PROCESSED_DATA_DIRNAME / 'byclass.h5'
 
-ESSENTIALS_FILENAME = Path(__file__).parents[0].resolve() / 'emnist_essentials.json'
 
 
-class TrailDataset(Dataset):
+class TrialDataset(Dataset):
 
     def __init__(self, subsample_fraction: float = None):
-        if not os.path.exists(ESSENTIALS_FILENAME):
-            _download_and_process_emnist()
+        if not os.path.exists(PROCESSED_DATA_FILENAME):
+            _download_and_process_trial()
         with open(ESSENTIALS_FILENAME) as f:
             essentials = json.load(f)
-        self.mapping = _augment_emnist_mapping(dict(essentials['mapping']))
-        self.inverse_mapping = {v: k for k, v in self.mapping.items()}
-        self.num_classes = len(self.mapping)
-        self.input_shape = essentials['input_shape']
-        self.output_shape = (self.num_classes,)
+
+        self.output_shape = 1
 
         self.subsample_fraction = subsample_fraction
         self.x_train = None
-        self.y_train_int = None
+        self.y_train = None
         self.x_test = None
-        self.y_test_int = None
+        self.y_test = None
 
     def load_or_generate_data(self):
         if not os.path.exists(PROCESSED_DATA_FILENAME):
-            _download_and_process_emnist()
+            _download_and_process_trial()
         with h5py.File(PROCESSED_DATA_FILENAME, 'r') as f:
             self.x_train = f['x_train'][:]
-            self.y_train_int = f['y_train'][:]
+            self.y_train = f['y_train'][:]
             self.x_test = f['x_test'][:]
-            self.y_test_int = f['y_test'][:]
+            self.y_test = f['y_test'][:]
         self._subsample()
 
     def _subsample(self):
@@ -83,7 +79,7 @@ class TrailDataset(Dataset):
         )
 
 
-def _download_and_process_emnist():
+def _download_and_process_trial():
     metadata = toml.load(METADATA_FILENAME)
     curdir = os.getcwd()
     os.chdir(RAW_DATA_DIRNAME)
@@ -95,7 +91,7 @@ def _download_and_process_emnist():
 def _process_raw_dataset(filename: str):
     print('Unzipping EMNIST...')
     zip_file = zipfile.ZipFile(filename, 'r')
-    zip_file.extract('matlab/emnist-byclass.mat')
+    zip_file.extract('matlab/trial-byclass.mat')
 
     print('Loading training data from .mat file')
     from scipy.io import loadmat

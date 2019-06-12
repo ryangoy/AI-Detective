@@ -5,11 +5,7 @@ import json
 import importlib
 from typing import Dict
 import os
-
-# Hide lines below until Lab 4
-import wandb
-
-# Hide lines above until Lab 4
+# import wandb
 from training.util import train_model
 
 
@@ -59,12 +55,21 @@ def run_experiment(experiment_config: Dict, save_weights: bool, gpu_ind: int, us
     dataset.load_or_generate_data()
     print(dataset)
 
-    models_module = importlib.import_module('text_recognizer.models')
+    # run face det
+
+    #check e2e
+
+
+    models_module = importlib.import_module('lie_detector.models')
     model_class_ = getattr(models_module, experiment_config['model'])
 
     networks_module = importlib.import_module('text_recognizer.networks')
     network_fn_ = getattr(networks_module, experiment_config['network'])
     network_args = experiment_config.get('network_args', {})
+
+
+    # k fold here when applicable
+
     model = model_class_(
         dataset_cls=dataset_class_,
         network_fn=network_fn_,
@@ -122,12 +127,12 @@ def _parse_args():
     parser.add_argument(
         "experiment_config",
         type=str,
-        help="Experimenet JSON ('{\"dataset\": \"EmnistDataset\", \"model\": \"CharacterModel\", \"network\": \"mlp\"}'"
+        help="Experimenet JSON ('{\"dataset\": \"TrialDataset\", \"model\": \"LSTMModel\", \"network\": \"LSTM\", \"end2end\": False}'"
     )
     parser.add_argument(
         "--nowandb",
-        default=False,
-        action='store_true',
+        default=True,
+        action='store_false',
         help='If true, do not use wandb for this run'
     )
     args = parser.parse_args()
@@ -137,11 +142,10 @@ def _parse_args():
 def main():
     """Run experiment."""
     args = _parse_args()
-    # Hide lines below until Lab 4
+
     if args.gpu < 0:
         gpu_manager = GPUManager()
         args.gpu = gpu_manager.get_free_gpu()  # Blocks until one is available
-    # Hide lines above until Lab 4
 
     experiment_config = json.loads(args.experiment_config)
     os.environ["CUDA_VISIBLE_DEVICES"] = f'{args.gpu}'
