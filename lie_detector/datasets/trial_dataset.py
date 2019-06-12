@@ -6,9 +6,6 @@ import os
 from pathlib import Path
 import shutil
 import zipfile
-
-from boltons.cacheutils import cachedproperty
-from tensorflow.keras.utils import to_categorical
 import h5py
 import numpy as np
 import toml
@@ -23,15 +20,11 @@ METADATA_FILENAME = RAW_DATA_DIRNAME / 'metadata.toml'
 PROCESSED_DATA_DIRNAME = Dataset.data_dirname() / 'processed' / 'trial'
 PROCESSED_DATA_FILENAME = PROCESSED_DATA_DIRNAME / 'byclass.h5'
 
-
-
 class TrialDataset(Dataset):
 
     def __init__(self, subsample_fraction: float = None):
-        if not os.path.exists(PROCESSED_DATA_FILENAME):
+        if not os.path.exists(str(PROCESSED_DATA_FILENAME)):
             _download_and_process_trial()
-        with open(ESSENTIALS_FILENAME) as f:
-            essentials = json.load(f)
 
         self.output_shape = 1
 
@@ -62,21 +55,6 @@ class TrialDataset(Dataset):
         self.x_test = self.x_test[:num_test]
         self.y_test_int = self.y_test_int[:num_test]
 
-    @cachedproperty
-    def y_train(self):
-        return to_categorical(self.y_train_int, self.num_classes)
-
-    @cachedproperty
-    def y_test(self):
-        return to_categorical(self.y_test_int, self.num_classes)
-
-    def __repr__(self):
-        return (
-            'EMNIST Dataset\n'
-            f'Num classes: {self.num_classes}\n'
-            f'Mapping: {self.mapping}\n'
-            f'Input shape: {self.input_shape}\n'
-        )
 
 
 def _download_and_process_trial():

@@ -5,7 +5,7 @@ from typing import Callable, Dict, Optional
 from tensorflow.keras.optimizers import RMSprop
 import numpy as np
 
-from text_recognizer.datasets.dataset_sequence import DatasetSequence
+from lie_detector.datasets.dataset_sequence import DatasetSequence
 
 
 DIRNAME = Path(__file__).parents[1].resolve() / 'weights'
@@ -14,7 +14,7 @@ DIRNAME = Path(__file__).parents[1].resolve() / 'weights'
 class Model:
     """Base class, to be subclassed by predictors for specific type of data."""
     def __init__(self, dataset_cls: type, network_fn: Callable, dataset_args: Dict = None, network_args: Dict = None):
-        self.name = f'{self.__class__.__name__}_{dataset_cls.__name__}_{network_fn.__name__}'
+        self.name = '{}_{}_{}'.format(self.__class__.__name__, dataset_cls.__name__ , network_fn.__name__)
 
         if dataset_args is None:
             dataset_args = {}
@@ -25,8 +25,8 @@ class Model:
         self.network = network_fn(self.data.input_shape, self.data.output_shape, **network_args)
         self.network.summary()
 
-        self.batch_augment_fn: Optional[Callable] = None
-        self.batch_format_fn: Optional[Callable] = None
+        self.batch_augment_fn = None
+        self.batch_format_fn = None
 
     @property
     def image_shape(self):
@@ -35,7 +35,7 @@ class Model:
     @property
     def weights_filename(self) -> str:
         DIRNAME.mkdir(parents=True, exist_ok=True)
-        return str(DIRNAME / f'{self.name}_weights.h5')
+        return str(DIRNAME / '{}_weights.h5'.format(self.name))
 
     def fit(self, dataset, batch_size: int = 32, epochs: int = 10, augment_val: bool = True, callbacks: list = None):
         if callbacks is None:

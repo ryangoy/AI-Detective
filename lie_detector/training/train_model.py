@@ -9,13 +9,14 @@ import wandb
 from wandb.keras import WandbCallback
 # Hide lines above until Lab 4
 
-from text_recognizer.datasets.dataset import Dataset
-from text_recognizer.models.base import Model
-from training.gpu_util_sampler import GPUUtilizationSampler
+import os 
+dir_path = os.path.dirname(os.path.realpath(__file__))
+from lie_detector.datasets.dataset import Dataset
+from lie_detector.models.base import Model
 
 
 EARLY_STOPPING = True
-GPU_UTIL_SAMPLER = True
+
 
 
 def train_model(
@@ -32,10 +33,6 @@ def train_model(
         early_stopping = EarlyStopping(monitor='val_loss', min_delta=0.01, patience=3, verbose=1, mode='auto')
         callbacks.append(early_stopping)
 
-    if GPU_UTIL_SAMPLER and gpu_ind is not None:
-        gpu_utilization = GPUUtilizationSampler(gpu_ind)
-        callbacks.append(gpu_utilization)
-
     # Hide lines below until Lab 4
     if use_wandb:
         wandb.init()
@@ -48,9 +45,5 @@ def train_model(
     t = time()
     _history = model.fit(dataset=dataset, batch_size=batch_size, epochs=epochs, callbacks=callbacks)
     print('Training took {:2f} s'.format(time() - t))
-
-    if GPU_UTIL_SAMPLER and gpu_ind is not None:
-        gpu_utilizations = gpu_utilization.samples
-        print(f'GPU utilization: {round(np.mean(gpu_utilizations), 2)} +- {round(np.std(gpu_utilizations), 2)}')
 
     return model

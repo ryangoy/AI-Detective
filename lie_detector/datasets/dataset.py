@@ -3,7 +3,7 @@ from pathlib import Path
 import argparse
 import os
 
-from text_recognizer import util
+from lie_detector import util
 
 
 class Dataset:

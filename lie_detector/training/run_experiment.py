@@ -5,8 +5,12 @@ import json
 import importlib
 from typing import Dict
 import os
-# import wandb
-from training.util import train_model
+
+
+import sys
+sys.path.insert(0, './')
+import wandb
+from lie_detector.training.train_model import train_model
 
 
 DEFAULT_TRAIN_ARGS = {
@@ -46,7 +50,7 @@ def run_experiment(experiment_config: Dict, save_weights: bool, gpu_ind: int, us
     use_wandb (bool)
         sync training run to wandb
     """
-    print(f'Running experiment with config {experiment_config} on GPU {gpu_ind}')
+    print('Running experiment with config {} on GPU {}'.format(experiment_config, gpu_ind))
 
     datasets_module = importlib.import_module('lie_detector.datasets')
     dataset_class_ = getattr(datasets_module, experiment_config['dataset'])
@@ -56,6 +60,7 @@ def run_experiment(experiment_config: Dict, save_weights: bool, gpu_ind: int, us
     print(dataset)
 
     # run face det
+
 
     #check e2e
 
@@ -97,7 +102,7 @@ def run_experiment(experiment_config: Dict, save_weights: bool, gpu_ind: int, us
         use_wandb=use_wandb
     )
     score = model.evaluate(dataset.x_test, dataset.y_test)
-    print(f'Test evaluation: {score}')
+    print('Test evaluation: {}'.format(score))
 
     # Hide lines below until Lab 4
     if use_wandb:
@@ -125,9 +130,9 @@ def _parse_args():
         help="If true, then final weights will be saved to canonical, version-controlled location"
     )
     parser.add_argument(
-        "experiment_config",
+        "--experiment_config",
         type=str,
-        help="Experimenet JSON ('{\"dataset\": \"TrialDataset\", \"model\": \"LSTMModel\", \"network\": \"LSTM\", \"end2end\": False}'"
+        default="{\"dataset\": \"TrialDataset\", \"model\": \"LSTMModel\", \"network\": \"LSTM\", \"end2end\": \"False\"}"
     )
     parser.add_argument(
         "--nowandb",
@@ -143,12 +148,9 @@ def main():
     """Run experiment."""
     args = _parse_args()
 
-    if args.gpu < 0:
-        gpu_manager = GPUManager()
-        args.gpu = gpu_manager.get_free_gpu()  # Blocks until one is available
 
     experiment_config = json.loads(args.experiment_config)
-    os.environ["CUDA_VISIBLE_DEVICES"] = f'{args.gpu}'
+    os.environ["CUDA_VISIBLE_DEVICES"] = str(args.gpu)
     run_experiment(experiment_config, args.save, args.gpu, use_wandb=not args.nowandb)
 
 

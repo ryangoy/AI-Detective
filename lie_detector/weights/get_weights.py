@@ -19,7 +19,7 @@ SENET50_WEIGHTS_NO_TOP_PATH = os.path.join(CACHE_PATH, 'senet50_weights_no_top.h
 
 
 DOWNLOADABLES = {
-	'haarcascade frontal face xml': [CASCADE_WEIGHTS_URL, CASCADE_WEIGHTS_URL]
+	'haarcascade frontal face xml': [CASCADE_WEIGHTS_URL, CASCADE_WEIGHTS_URL],
 	'senet-50 face recognition': [SENET50_WEIGHTS_NO_TOP_URL, SENET50_WEIGHTS_NO_TOP_PATH]
 }
 

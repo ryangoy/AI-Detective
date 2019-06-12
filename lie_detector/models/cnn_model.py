@@ -1,8 +1,9 @@
 import numpy as np
 
 from lie_detector.models.base import Model
-from lie_detector.datasets.emnist_dataset import EmnistDataset
+from lie_detector.datasets.trial_dataset import TrialDataset
 from lie_detector.networks.face_net import senet50
+from typing import Callable, Dict, Tuple
 
 
 class CNNModel(Model):
