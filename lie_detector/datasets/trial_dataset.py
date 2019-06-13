@@ -9,16 +9,21 @@ import zipfile
 import h5py
 import numpy as np
 import toml
+import pandas as pd
 
 from lie_detector.datasets.dataset import _download_raw_dataset, Dataset, _parse_args
+from lie_detector.video_face_detector import generate_cropped_face_video
 
 SAMPLE_TO_BALANCE = True  # If true, take at most the mean number of instances per class.
 
-RAW_DATA_DIRNAME = Dataset.data_dirname() / 'raw' / 'trial'
-METADATA_FILENAME = RAW_DATA_DIRNAME / 'metadata.toml'
+RAW_DATA_DIRNAME = Dataset.data_dirname() / 'raw'
+METADATA_FILENAME = Dataset.data_dirname() / 'metadata.toml'
 
-PROCESSED_DATA_DIRNAME = Dataset.data_dirname() / 'processed' / 'trial'
-PROCESSED_DATA_FILENAME = PROCESSED_DATA_DIRNAME / 'byclass.h5'
+PROCESSED_DATA_DIRNAME = Dataset.data_dirname() / 'processed' / 'TrialData'
+PROCESSED_DATA_FILENAME = PROCESSED_DATA_DIRNAME / 'X_faces.npy'
+PROCESSED_LABELS_FILENAME = PROCESSED_DATA_DIRNAME / 'y.npy'
+
+ANNOTATION_CSV_FILENAME = 'TrialData/Annotation/All_Gestures_Deceptive and Truthful.csv'
 
 class TrialDataset(Dataset):
 
@@ -35,13 +40,14 @@ class TrialDataset(Dataset):
         self.y_test = None
 
     def load_or_generate_data(self):
-        if not os.path.exists(PROCESSED_DATA_FILENAME):
+        if not os.path.exists(str(PROCESSED_DATA_FILENAME)):
             _download_and_process_trial()
-        with h5py.File(PROCESSED_DATA_FILENAME, 'r') as f:
-            self.x_train = f['x_train'][:]
-            self.y_train = f['y_train'][:]
-            self.x_test = f['x_test'][:]
-            self.y_test = f['y_test'][:]
+        self.X = np.load(PROCESSED_DATA_FILENAME, allow_pickle=True)
+        self.y = np.load(PROCESSED_LABELS_FILENAME)
+        # with h5py.File(PROCESSED_DATA_FILENAME, 'r') as f:
+        #     self.X = f['X'][:]
+        #     self.y = f['y'][:]
+
         self._subsample()
 
     def _subsample(self):
@@ -60,61 +66,79 @@ class TrialDataset(Dataset):
 def _download_and_process_trial():
     metadata = toml.load(METADATA_FILENAME)
     curdir = os.getcwd()
-    os.chdir(RAW_DATA_DIRNAME)
-    _download_raw_dataset(metadata)
-    _process_raw_dataset(metadata['filename'])
+    os.chdir(str(RAW_DATA_DIRNAME))
+    _download_raw_dataset(metadata['trial'])
+    _process_raw_dataset(metadata['trial']['filename'])
     os.chdir(curdir)
 
 
 def _process_raw_dataset(filename: str):
-    print('Unzipping EMNIST...')
-    zip_file = zipfile.ZipFile(filename, 'r')
-    zip_file.extract('matlab/trial-byclass.mat')
+    if not os.path.isdir('TrialData'):
+        print('Unzipping trial_data.zip...')
+        zip_file = zipfile.ZipFile(filename, 'r')
+        for file in zip_file.namelist():
+            if file.startswith('Real-life_Deception_Detection_2016/'):
+                zip_file.extract(file, 'temp')
+        zip_file.close()
+        os.rename('temp/Real-life_Deception_Detection_2016/', 'TrialData/')
+        os.rmdir('temp')  
 
-    print('Loading training data from .mat file')
-    from scipy.io import loadmat
-    data = loadmat('matlab/emnist-byclass.mat')
-    x_train = data['dataset']['train'][0, 0]['images'][0, 0].reshape(-1, 28, 28).swapaxes(1, 2)
-    y_train = data['dataset']['train'][0, 0]['labels'][0, 0]
-    x_test = data['dataset']['test'][0, 0]['images'][0, 0].reshape(-1, 28, 28).swapaxes(1, 2)
-    y_test = data['dataset']['test'][0, 0]['labels'][0, 0]
+    print('Loading training data from folder')
 
-    if SAMPLE_TO_BALANCE:
-        print('Balancing classes to reduce amount of data')
-        x_train, y_train = _sample_to_balance(x_train, y_train)
-        x_test, y_test = _sample_to_balance(x_test, y_test)
+    X_fnames = []
+    y = []
+    microexpressions = []
+    annotation_path = os.path.join(str(RAW_DATA_DIRNAME), ANNOTATION_CSV_FILENAME)
+    annotation_csv = pd.read_csv(annotation_path)
 
-    print('Saving to HDF5 in a compressed format...')
-    PROCESSED_DATA_DIRNAME.mkdir(parents=True, exist_ok=True)
-    with h5py.File(PROCESSED_DATA_FILENAME, 'w') as f:
-        f.create_dataset('x_train', data=x_train, dtype='u1', compression='lzf')
-        f.create_dataset('y_train', data=y_train, dtype='u1', compression='lzf')
-        f.create_dataset('x_test', data=x_test, dtype='u1', compression='lzf')
-        f.create_dataset('y_test', data=y_test, dtype='u1', compression='lzf')
-
-    print('Saving essential dataset parameters to text_recognizer/datasets...')
-    mapping = {int(k): chr(v) for k, v in data['dataset']['mapping'][0, 0]}
-    essentials = {'mapping': list(mapping.items()), 'input_shape': list(x_train.shape[1:])}
-    with open(ESSENTIALS_FILENAME, 'w') as f:
-        json.dump(essentials, f)
-
-    print('Cleaning up...')
-    shutil.rmtree('matlab')
+    for f in os.listdir('TrialData/Clips/Deceptive'):
+        X_fnames.append(os.path.join(str(RAW_DATA_DIRNAME), 'TrialData', 'Clips', 'Deceptive', f))
+        microexpressions.append(list(annotation_csv[annotation_csv.id==f]))
+        y.append(1)
+    for f in os.listdir('TrialData/Clips/Truthful'):
+        X_fnames.append(os.path.join(str(RAW_DATA_DIRNAME), 'TrialData', 'Clips', 'Truthful', f))
+        microexpressions.append(list(annotation_csv[annotation_csv.id==f]))
+        y.append(0)
 
 
-def _sample_to_balance(x, y):
-    """Because the dataset is not balanced, we take at most the mean number of instances per class."""
-    np.random.seed(0)
-    num_to_sample = int(np.bincount(y.flatten()).mean())
-    all_sampled_inds = []
-    for label in np.unique(y.flatten()):
-        inds = np.where(y == label)[0]
-        sampled_inds = np.unique(np.random.choice(inds, num_to_sample))
-        all_sampled_inds.append(sampled_inds)
-    ind = np.concatenate(all_sampled_inds)
-    x_sampled = x[ind]
-    y_sampled = y[ind]
-    return x_sampled, y_sampled
+    # if SAMPLE_TO_BALANCE:
+    #     print('Balancing classes to reduce amount of data')
+    #     X, y = _sample_to_balance(x_train, y_train)
+    X = []
+
+    print('Detecting face in videos...')
+    for counter, f in enumerate(X_fnames):
+        X.append(generate_cropped_face_video(f, grayscale=True, fps=10))
+        if (counter+1) % 1 == 0:
+            print('Successfully detected faces in video {}/{} with shape {}'.format(counter+1, len(X_fnames), np.array(X[counter]).shape))
+    X = np.array(X)
+    y = np.array(y)
+
+    np.save('X_faces.npy', X)
+    np.save('y.npy', y)
+
+    
+
+    # print('Saving to HDF5 in a compressed format...')
+    # PROCESSED_DATA_DIRNAME.mkdir(parents=True, exist_ok=True)
+    # with h5py.File(PROCESSED_DATA_FILENAME, 'w') as f:
+    #     f.create_dataset('X', data=X, dtype='u1', compression='lzf')
+    #     f.create_dataset('y', data=y, dtype='u1', compression='lzf')
+
+
+# def _sample_to_balance(x, y):
+#     """Because the dataset is not balanced, we take at most the mean number of instances per class."""
+#     np.random.seed(0)
+#     num_to_sample = int(np.bincount(y.flatten()).mean())
+#     all_sampled_inds = []
+#     for label in np.unique(y.flatten()):
+#         inds = np.where(y == label)[0]
+#         sampled_inds = np.unique(np.random.choice(inds, num_to_sample))
+#         all_sampled_inds.append(sampled_inds)
+#     ind = np.concatenate(all_sampled_inds)
+#     x_sampled = x[ind]
+#     y_sampled = y[ind]
+#     return x_sampled, y_sampled
 
 
 def main():

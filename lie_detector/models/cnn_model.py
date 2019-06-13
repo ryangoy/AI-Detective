@@ -2,14 +2,14 @@ import numpy as np
 
 from lie_detector.models.base import Model
 from lie_detector.datasets.trial_dataset import TrialDataset
-from lie_detector.networks.face_net import senet50
+from lie_detector.networks.face_net import SENET50
 from typing import Callable, Dict, Tuple
 
 
 class CNNModel(Model):
     def __init__(self,
                  dataset_cls: type = TrialDataset,
-                 network_fn: Callable = senet50,
+                 network_fn: Callable = SENET50,
                  dataset_args: Dict = None,
                  network_args: Dict = None):
         """Define the default dataset and network values for this model."""

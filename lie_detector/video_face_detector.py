@@ -1,9 +1,9 @@
 import cv2
 import numpy as np
 import os
+from pathlib import Path
 
-haarcascade_path = os.path.join('lie_detector', 'weights', 'haarcascade_frontalface_default.xml')
-
+haarcascade_path = os.path.join(str(Path(__file__).resolve().parents[0]), 'weights', 'cache', 'haarcascade_frontalface_default.xml')
 
 def generate_cropped_face_video(vpath, grayscale=False, fps=10):
 
@@ -11,7 +11,6 @@ def generate_cropped_face_video(vpath, grayscale=False, fps=10):
         return 0.0
 
     face_cascade = cv2.CascadeClassifier(haarcascade_path)
-
     cap = cv2.VideoCapture(vpath)
     inp_fps = cap.get(cv2.CAP_PROP_FPS)
     inp_frame_time = 1000.0/inp_fps
@@ -24,11 +23,16 @@ def generate_cropped_face_video(vpath, grayscale=False, fps=10):
     samples = 0
     frames = 0
 
+    frames_arr = []
+
     while frame_available:
 
         # Logic to decrease fps
         if frame_time_counter >= frame_time:
-            rect = _detect_face(img, face_cascade, center)
+            if grayscale:
+                img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+            rect = _detect_face(img, face_cascade, center, already_grayscale=grayscale)
             frame_time_counter -= frame_time
             frames += 1
 
@@ -39,18 +43,22 @@ def generate_cropped_face_video(vpath, grayscale=False, fps=10):
 
                 if samples >= 10:
 
-                    cropped_img = img[int(center[1]-dims[1]/2): int(center[1]+dims[1]/2), 
-                                  int(center[0]-dims[0]/2): int(center[0]+dims[0]/2)]
-                    # cropped_img = img[rect[1]:rect[1]+rect[3], rect[0]: rect[0]+rect[2]]
-
+                    y_min = max(0, int(center[1]-dims[1]/2))
+                    y_max = min(img.shape[0], int(center[1]+dims[1]/2))
+                    x_min = max(0, int(center[0]-dims[0]/2))
+                    x_max = min(img.shape[1], int(center[0]+dims[0]/2))
+                    cropped_img = img[y_min:y_max, x_min:x_max] 
+                   
                     # cv2.imshow('cropped_vid', cropped_img)
                     # cv2.waitKey(50)
+                    frames_arr.append(cv2.resize(cropped_img, (224, 224)))
+
 
         frame_time_counter += inp_frame_time
         frame_available, img = cap.read()
 
     cap.release()
-    return float(samples) / frames
+    return np.array(frames_arr)
 
 def _update_rect(center, dims, rect, dims_sampling, smooth_coef=0.9):
     curr_center = rect[:2] + 0.5*rect[2:]
@@ -64,8 +72,12 @@ def _update_rect(center, dims, rect, dims_sampling, smooth_coef=0.9):
         dims = rect[2:]
     return center, dims
 
-def _detect_face(img, face_cascade, prev_center, padding=20):
-    gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+def _detect_face(img, face_cascade, prev_center, padding=20, already_grayscale=False):
+
+    if already_grayscale:
+        gray_img = img
+    else:
+        gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     faces = face_cascade.detectMultiScale(gray_img, 1.1, 4)
     if len(faces) > 0:
         min_dist = 1e10

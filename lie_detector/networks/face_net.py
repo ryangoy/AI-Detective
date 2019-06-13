@@ -106,7 +106,7 @@ def senet_identity_block(input_tensor, kernel_size,
     return m
 
 
-def senet50(weights='vggface', input_tensor=None, input_shape=None, pooling=None, trainable=False):
+def SENET50(weights='vggface', input_tensor=None, input_shape=None, pooling=None, trainable=False):
 
     if input_tensor is None:
         img_input = Input(shape=input_shape)

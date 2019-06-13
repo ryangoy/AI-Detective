@@ -1,0 +1,4 @@
+[trial]
+  name="TrialDataset"
+  filename="trial_data.zip"
+  url="http://web.eecs.umich.edu/~mihalcea/downloads/RealLifeDeceptionDetection.2016.zip"

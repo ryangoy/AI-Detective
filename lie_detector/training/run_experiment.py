@@ -59,33 +59,34 @@ def run_experiment(experiment_config: Dict, save_weights: bool, gpu_ind: int, us
     dataset.load_or_generate_data()
     print(dataset)
 
-    # run face det
-
-
-    #check e2e
-
-
     models_module = importlib.import_module('lie_detector.models')
     model_class_ = getattr(models_module, experiment_config['model'])
 
-    networks_module = importlib.import_module('text_recognizer.networks')
-    network_fn_ = getattr(networks_module, experiment_config['network'])
+    networks_module = importlib.import_module('lie_detector.networks')
+    base_network_fn_ = getattr(networks_module, experiment_config['base_network'])
+    head_network_fn_ = getattr(networks_module, experiment_config['head_network'])
     network_args = experiment_config.get('network_args', {})
 
-
-    # k fold here when applicable
-
-    model = model_class_(
-        dataset_cls=dataset_class_,
-        network_fn=network_fn_,
-        dataset_args=dataset_args,
-        network_args=network_args
-    )
-    print(model)
 
     experiment_config['train_args'] = {**DEFAULT_TRAIN_ARGS, **experiment_config.get('train_args', {})}
     experiment_config['experiment_group'] = experiment_config.get('experiment_group', None)
     experiment_config['gpu_ind'] = gpu_ind
+
+    #check e2e
+    if experiment_config['end2end'] == "True":
+
+
+        # k fold here when applicable
+
+        model = model_class_(
+            dataset_cls=dataset_class_,
+            network_fn=network_fn_,
+            dataset_args=dataset_args,
+            network_args=network_args
+        )
+        print(model)
+
+    
 
     # Hide lines below until Lab 4
     if use_wandb:

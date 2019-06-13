@@ -2,14 +2,14 @@ import numpy as np
 
 from lie_detector.models.base import Model
 from lie_detector.datasets.trial_dataset import TrialDataset
-from lie_detector.networks.face_net import senet50
+from lie_detector.networks.base_lstm import LSTM
 from typing import Callable, Dict, Tuple
 
 
 class LSTMModel(Model):
     def __init__(self,
                  dataset_cls: type = TrialDataset,
-                 network_fn: Callable = senet50,
+                 network_fn: Callable = LSTM,
                  dataset_args: Dict = None,
                  network_args: Dict = None):
         """Define the default dataset and network values for this model."""

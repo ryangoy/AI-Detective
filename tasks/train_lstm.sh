@@ -1,0 +1,2 @@
+#!/bin/bash
+python lie_detector/training/run_experiment.py --experiment_config '{"dataset": "TrialDataset", "model": "LSTMModel", "base_network": "LSTM", "head_network": "SENET50", "train_args": {"batch_size": 256}, "end2end": "False"}'

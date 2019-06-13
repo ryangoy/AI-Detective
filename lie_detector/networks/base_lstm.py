@@ -20,7 +20,7 @@ from keras import layers
 # if face_net_model is given, input of shape (batches, frames, x, y, 1)
 # if face_net_model is none, input of shape (batches, frames, features)
 def LSTM(frames, face_net_model=None, hidden_units=512, weights=None, input_tensor=None, input_shape=None, dropout=0.5):
-	if input_tensor is None:
+    if input_tensor is None:
         img_input = Input(shape=input_shape)
     else:
         if not K.is_keras_tensor(input_tensor):
