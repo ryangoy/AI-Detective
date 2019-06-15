@@ -11,9 +11,10 @@ class LSTMModel(Model):
                  dataset_cls: type = TrialDataset,
                  network_fn: Callable = LSTM,
                  dataset_args: Dict = None,
-                 network_args: Dict = None):
+                 network_args: Dict = None,
+                 input_shape=None):
         """Define the default dataset and network values for this model."""
-        super().__init__(dataset_cls, network_fn, dataset_args, network_args)
+        super().__init__(dataset_cls, network_fn, dataset_args, network_args, input_shape)
 
     def predict_on_image(self, image: np.ndarray) -> Tuple[str, float]:
         if image.dtype == np.uint8:

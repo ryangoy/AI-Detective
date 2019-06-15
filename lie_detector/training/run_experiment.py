@@ -12,9 +12,8 @@ sys.path.insert(0, './')
 import wandb
 from lie_detector.training.train_model import train_model
 
-
 DEFAULT_TRAIN_ARGS = {
-    'batch_size': 64,
+    'batch_size': 4,
     'epochs': 16
 }
 
@@ -72,46 +71,53 @@ def run_experiment(experiment_config: Dict, save_weights: bool, gpu_ind: int, us
     experiment_config['experiment_group'] = experiment_config.get('experiment_group', None)
     experiment_config['gpu_ind'] = gpu_ind
 
-    #check e2e
-    if experiment_config['end2end'] == "True":
+    
+    if experiment_config['end2end'] == "False":
+        # process data through cnn
+        feature_model_class_ = getattr(models_module, experiment_config['feature_model'])
+        feature_model = feature_model_class_(network_fn=head_network_fn_)
+        dataset.X = feature_model.generate_features(dataset.X, dataset.y)
+        dataset.input_shape = [dataset.X.shape[-1]]
 
+    # k fold here when applicable
 
-        # k fold here when applicable
+    for k in range(dataset.num_folds):
+        print('Running fold {}'.format(k))
+        dataset.set_fold(k)
 
+        print(dataset.X)
         model = model_class_(
             dataset_cls=dataset_class_,
-            network_fn=network_fn_,
+            network_fn=base_network_fn_,
             dataset_args=dataset_args,
-            network_args=network_args
+            network_args=network_args,
+            input_shape=dataset.input_shape
         )
-        print(model)
 
-    
 
-    # Hide lines below until Lab 4
-    if use_wandb:
-        wandb.init()
-        wandb.config.update(experiment_config)
-    # Hide lines above until Lab 4
+        if use_wandb:
+            wandb.init()
+            wandb.config.update(experiment_config)
 
-    train_model(
-        model,
-        dataset,
-        epochs=experiment_config['train_args']['epochs'],
-        batch_size=experiment_config['train_args']['batch_size'],
-        gpu_ind=gpu_ind,
-        use_wandb=use_wandb
-    )
-    score = model.evaluate(dataset.x_test, dataset.y_test)
-    print('Test evaluation: {}'.format(score))
+        train_model(
+            model,
+            dataset,
+            epochs=experiment_config['train_args']['epochs'],
+            batch_size=experiment_config['train_args']['batch_size'],
+            gpu_ind=gpu_ind,
+            use_wandb=use_wandb
+        )
 
-    # Hide lines below until Lab 4
-    if use_wandb:
-        wandb.log({'test_metric': score})
-    # Hide lines above until Lab 4
+        score = model.evaluate(dataset.X_val, dataset.y_val)
+        print('Test evaluation: {}'.format(score))
 
-    if save_weights:
-        model.save_weights()
+        # Hide lines below until Lab 4
+        if use_wandb:
+            wandb.log({'test_metric': score})
+        # Hide lines above until Lab 4
+
+        if save_weights:
+            model.save_weights()
 
 
 def _parse_args():

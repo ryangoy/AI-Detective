@@ -5,7 +5,7 @@ from pathlib import Path
 
 haarcascade_path = os.path.join(str(Path(__file__).resolve().parents[0]), 'weights', 'cache', 'haarcascade_frontalface_default.xml')
 
-def generate_cropped_face_video(vpath, grayscale=False, fps=10):
+def generate_cropped_face_video(vpath, fps=10):
 
     if vpath is None:
         return 0.0
@@ -29,10 +29,8 @@ def generate_cropped_face_video(vpath, grayscale=False, fps=10):
 
         # Logic to decrease fps
         if frame_time_counter >= frame_time:
-            if grayscale:
-                img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-            rect = _detect_face(img, face_cascade, center, already_grayscale=grayscale)
+            rect = _detect_face(img, face_cascade, center)
             frame_time_counter -= frame_time
             frames += 1
 

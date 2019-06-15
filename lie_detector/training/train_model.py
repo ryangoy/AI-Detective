@@ -4,6 +4,8 @@ from typing import Optional
 
 import numpy as np
 from tensorflow.keras.callbacks import EarlyStopping
+import keras.backend as K
+K.set_image_dim_ordering('tf')
 # Hide lines below until Lab 4
 import wandb
 from wandb.keras import WandbCallback
@@ -14,8 +16,7 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 from lie_detector.datasets.dataset import Dataset
 from lie_detector.models.base import Model
 
-
-EARLY_STOPPING = True
+EARLY_STOPPING = False
 
 
 
@@ -40,7 +41,7 @@ def train_model(
         callbacks.append(wandb_callback)
     # Hide lines above until Lab 4
 
-    model.network.summary()
+    # model.network.summary()
 
     t = time()
     _history = model.fit(dataset=dataset, batch_size=batch_size, epochs=epochs, callbacks=callbacks)

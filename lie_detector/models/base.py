@@ -2,7 +2,7 @@
 from pathlib import Path
 from typing import Callable, Dict, Optional
 
-from tensorflow.keras.optimizers import RMSprop
+from keras.optimizers import RMSprop
 import numpy as np
 
 from lie_detector.datasets.dataset_sequence import DatasetSequence
@@ -13,24 +13,30 @@ DIRNAME = Path(__file__).parents[1].resolve() / 'weights'
 
 class Model:
     """Base class, to be subclassed by predictors for specific type of data."""
-    def __init__(self, dataset_cls: type, network_fn: Callable, dataset_args: Dict = None, network_args: Dict = None):
+    def __init__(self, dataset_cls: type, network_fn: Callable, dataset_args: Dict = None, network_args: Dict = None, input_shape=None):
         self.name = '{}_{}_{}'.format(self.__class__.__name__, dataset_cls.__name__ , network_fn.__name__)
 
         if dataset_args is None:
             dataset_args = {}
-        self.data = dataset_cls(**dataset_args)
+        
 
         if network_args is None:
             network_args = {}
-        self.network = network_fn(self.data.input_shape, self.data.output_shape, **network_args)
-        self.network.summary()
+
+        if input_shape is not None:
+            self.network = network_fn(input_shape=input_shape, **network_args)
+        else:
+            self.data = dataset_cls(**dataset_args)
+            self.network = network_fn(input_shape=self.data.input_shape, **network_args)
+        # self.network.summary()
 
         self.batch_augment_fn = None
         self.batch_format_fn = None
 
-    @property
-    def image_shape(self):
-        return self.data.input_shape
+
+    # @property
+    # def image_shape(self):
+    #     return self.data.input_shape
 
     @property
     def weights_filename(self) -> str:
@@ -44,15 +50,15 @@ class Model:
         self.network.compile(loss=self.loss(), optimizer=self.optimizer(), metrics=self.metrics())
 
         train_sequence = DatasetSequence(
-            dataset.x_train,
-            dataset.y_train,
+            dataset.X_trn,
+            dataset.y_trn,
             batch_size,
             augment_fn=self.batch_augment_fn,
             format_fn=self.batch_format_fn
         )
         test_sequence = DatasetSequence(
-            dataset.x_test,
-            dataset.y_test,
+            dataset.X_val,
+            dataset.y_val,
             batch_size,
             augment_fn=self.batch_augment_fn if augment_val else None,
             format_fn=self.batch_format_fn
@@ -71,13 +77,19 @@ class Model:
     def evaluate(self, x, y, batch_size=16, verbose=False):  # pylint: disable=unused-argument
         sequence = DatasetSequence(x, y, batch_size=batch_size)  # Use a small batch size to use less memory
         preds = self.network.predict_generator(sequence)
-        return np.mean(np.argmax(preds, -1) == np.argmax(y, -1))
+        
+        length = len(preds)
+        y = np.array(y).reshape((length,))
+        preds = np.array(preds).reshape((length,))
+        print(preds)
+        print(y)
+        return np.sqrt(np.sum(np.square(preds - y)))
 
     def loss(self):  # pylint: disable=no-self-use
-        return 'categorical_crossentropy'
+        return 'binary_crossentropy'
 
     def optimizer(self):  # pylint: disable=no-self-use
-        return RMSprop()
+        return RMSprop(lr=0.00001)
 
     def metrics(self):  # pylint: disable=no-self-use
         return ['accuracy']

@@ -5,7 +5,7 @@ Can receive raw input if face net model is given or can receive features extract
 
 from keras.layers import Flatten, Dense, Input, GlobalAveragePooling2D, \
     GlobalMaxPooling2D, Activation, Conv2D, MaxPooling2D, BatchNormalization, \
-    AveragePooling2D, Reshape, Permute, multiply
+    AveragePooling2D, Reshape, Permute, multiply, Dropout
 from keras_applications.imagenet_utils import _obtain_input_shape
 from keras.utils import layer_utils
 from keras.utils.data_utils import get_file
@@ -17,26 +17,23 @@ from keras.models import Model
 from keras import layers
 
 
+
 # if face_net_model is given, input of shape (batches, frames, x, y, 1)
 # if face_net_model is none, input of shape (batches, frames, features)
-def LSTM(frames, face_net_model=None, hidden_units=512, weights=None, input_tensor=None, input_shape=None, dropout=0.5):
-    if input_tensor is None:
-        img_input = Input(shape=input_shape)
-    else:
-        if not K.is_keras_tensor(input_tensor):
-            img_input = Input(tensor=input_tensor, shape=input_shape)
-        else:
-            img_input = input_tensor
+def LSTM(frames=64, face_net_model=None, hidden_units=512, weights=None, input_shape=None, dropout=0.5):
+
+    img_input = Input(shape=[frames,]+input_shape)
 
     if K.image_data_format() == 'channels_last':
         bn_axis = 3
     else:
         bn_axis = 1
 
+    x = img_input
     if face_net_model is not None:
     	x = TimeDistributed(face_net_model, input_shape=(frames, face_net_model.output_shape[1]))(x)
 
-    x = LSTM(units=hidden_units, return_sequences=False, dropout=dropout)(x)
+    x = layers.LSTM(units=hidden_units, return_sequences=False, dropout=dropout)(x)
 
     x = Dense(512, activation='relu')(x)
     x = Dropout(dropout)(x)
@@ -45,10 +42,8 @@ def LSTM(frames, face_net_model=None, hidden_units=512, weights=None, input_tens
 
     # Ensure that the model takes into account
     # any potential predecessors of `input_tensor`.
-    if input_tensor is not None:
-        inputs = get_source_inputs(input_tensor)
-    else:
-        inputs = img_input
+
+    inputs = img_input
 
     model = Model(inputs, x, name='lie_detector_lstm')
 

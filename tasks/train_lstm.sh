@@ -1,2 +1,2 @@
 #!/bin/bash
-python lie_detector/training/run_experiment.py --experiment_config '{"dataset": "TrialDataset", "model": "LSTMModel", "base_network": "LSTM", "head_network": "SENET50", "train_args": {"batch_size": 256}, "end2end": "False"}'
+python lie_detector/training/run_experiment.py --experiment_config '{"dataset": "TrialDataset", "feature_model":"CNNModel", "model": "LSTMModel", "base_network": "LSTM", "head_network": "RESNET50", "train_args": {"batch_size": 8}, "network_args": {"frames":64}, "end2end": "False"}'

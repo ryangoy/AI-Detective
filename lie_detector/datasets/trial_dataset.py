@@ -10,6 +10,7 @@ import h5py
 import numpy as np
 import toml
 import pandas as pd
+from sklearn.model_selection import KFold
 
 from lie_detector.datasets.dataset import _download_raw_dataset, Dataset, _parse_args
 from lie_detector.video_face_detector import generate_cropped_face_video
@@ -27,28 +28,60 @@ ANNOTATION_CSV_FILENAME = 'TrialData/Annotation/All_Gestures_Deceptive and Truth
 
 class TrialDataset(Dataset):
 
-    def __init__(self, subsample_fraction: float = None):
+    def __init__(self, subsample_fraction: float = None, num_folds: int = 3, frames_per_sample = 64):
         if not os.path.exists(str(PROCESSED_DATA_FILENAME)):
             _download_and_process_trial()
 
         self.output_shape = 1
 
         self.subsample_fraction = subsample_fraction
-        self.x_train = None
-        self.y_train = None
-        self.x_test = None
-        self.y_test = None
+        self.X = None
+        self.y = None
+
+        self.num_folds = num_folds 
+        self.trn_folds = []
+        self.val_folds = []
+
+        self.input_shape = [224, 224, 3]
+        self.frames_per_sample = frames_per_sample
 
     def load_or_generate_data(self):
         if not os.path.exists(str(PROCESSED_DATA_FILENAME)):
             _download_and_process_trial()
+        
         self.X = np.load(PROCESSED_DATA_FILENAME, allow_pickle=True)
         self.y = np.load(PROCESSED_LABELS_FILENAME)
+        self._fix_data_length()
         # with h5py.File(PROCESSED_DATA_FILENAME, 'r') as f:
         #     self.X = f['X'][:]
         #     self.y = f['y'][:]
+        self._initialize_fold()
+        # self._subsample()
 
-        self._subsample()
+    def _fix_data_length(self):
+        X_new = []
+        y_new = []
+        for i, x in enumerate(self.X):
+            n_samps = len(x) // self.frames_per_sample
+            for j in range(n_samps):
+                X_new.append(x[j*self.frames_per_sample: (j+1)*self.frames_per_sample])
+                y_new.append(self.y[i])
+        self.X = np.array(X_new)
+        self.y = np.array(y_new)
+
+
+    def _initialize_fold(self):
+        kf = KFold(n_splits=self.num_folds, random_state=0, shuffle=True)
+        for trn_index, val_index in kf.split(self.X):
+            self.trn_folds.append(trn_index)
+            self.val_folds.append(val_index)
+
+    def set_fold(self, index):
+        self.X_trn = self.X[self.trn_folds[index]]
+        self.y_trn = self.y[self.trn_folds[index]]
+        self.X_val = self.X[self.val_folds[index]]
+        self.y_val = self.y[self.val_folds[index]]
+
 
     def _subsample(self):
         """Only this fraction of data will be loaded."""
@@ -108,14 +141,14 @@ def _process_raw_dataset(filename: str):
 
     print('Detecting face in videos...')
     for counter, f in enumerate(X_fnames):
-        X.append(generate_cropped_face_video(f, grayscale=True, fps=10))
+        X.append(generate_cropped_face_video(f, fps=10))
         if (counter+1) % 1 == 0:
             print('Successfully detected faces in video {}/{} with shape {}'.format(counter+1, len(X_fnames), np.array(X[counter]).shape))
     X = np.array(X)
     y = np.array(y)
 
-    np.save('X_faces.npy', X)
-    np.save('y.npy', y)
+    np.save(os.path.join(PROCESSED_DATA_DIRNAME, 'X_faces.npy'), X)
+    np.save(os.path.join(PROCESSED_DATA_DIRNAME, 'y.npy'), y)
 
     
 

@@ -1,0 +1,13 @@
+{
+	"dataset": "TrialDataset", 
+	"feature_model":"CNNModel", 
+	"model": "LSTMModel", 
+	"base_network": "LSTM", 
+	"head_network": "SENET50", 
+	"train_args": {
+		"batch_size": 256}, 
+		"end2end": "False"
+	},
+	"network_args": {
+		"frames": 64
+	}

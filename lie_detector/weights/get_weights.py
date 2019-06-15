@@ -17,6 +17,9 @@ SENET50_WEIGHTS_NO_TOP_URL = os.path.join(DOWNLOAD_URL, 'senet50_weights_no_top.
 SENET50_WEIGHTS_NO_TOP_PATH = os.path.join(CACHE_PATH, 'senet50_weights_no_top.h5')
 
 
+RESNET50_WEIGHTS_NO_TOP_URL = os.path.join(DOWNLOAD_URL, 'resnet50_weights_no_top.h5')
+RESNET50_WEIGHTS_NO_TOP_PATH = os.path.join(CACHE_PATH, 'resnet50_weights_no_top.h5')
+
 
 DOWNLOADABLES = {
 	'haarcascade frontal face xml': [CASCADE_WEIGHTS_URL, CASCADE_WEIGHTS_URL],
