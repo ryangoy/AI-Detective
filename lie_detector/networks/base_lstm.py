@@ -33,12 +33,14 @@ def LSTM(frames=64, face_net_model=None, hidden_units=512, weights=None, input_s
     if face_net_model is not None:
     	x = TimeDistributed(face_net_model, input_shape=(frames, face_net_model.output_shape[1]))(x)
 
+    x = layers.LSTM(units=hidden_units, return_sequences=True, dropout=dropout)(x)
     x = layers.LSTM(units=hidden_units, return_sequences=False, dropout=dropout)(x)
-
+    x = Dense(1024, activation='relu')(x)
+    x = Dropout(dropout)(x)
     x = Dense(512, activation='relu')(x)
     x = Dropout(dropout)(x)
-    x = Dense(1)(x)
-    x = Activation('softmax')(x)
+
+    x = Dense(1, activation='sigmoid')(x)
 
     # Ensure that the model takes into account
     # any potential predecessors of `input_tensor`.
@@ -47,31 +49,31 @@ def LSTM(frames=64, face_net_model=None, hidden_units=512, weights=None, input_s
 
     model = Model(inputs, x, name='lie_detector_lstm')
 
-    # load weights
-    if weights == 'vggface':
+    # # load weights
+    # if weights == 'vggface':
 
-        weights_path = get_file('senet50_vggface_weights.h5', utils.SENET50_WEIGHTS_NO_TOP_URL,
-                                cache_subdir=utils.CACHE_PATH)
-        model.load_weights(weights_path)
-        if K.backend() == 'theano':
-            layer_utils.convert_all_kernels_in_model(model)
-            if include_top:
-                maxpool = model.get_layer(name='avg_pool')
-                shape = maxpool.output_shape[1:]
-                dense = model.get_layer(name='classifier')
-                layer_utils.convert_dense_weights_data_format(dense, shape, 'channels_first')
+    #     weights_path = get_file('senet50_vggface_weights.h5', utils.SENET50_WEIGHTS_NO_TOP_URL,
+    #                             cache_subdir=utils.CACHE_PATH)
+    #     model.load_weights(weights_path)
+    #     if K.backend() == 'theano':
+    #         layer_utils.convert_all_kernels_in_model(model)
+    #         if include_top:
+    #             maxpool = model.get_layer(name='avg_pool')
+    #             shape = maxpool.output_shape[1:]
+    #             dense = model.get_layer(name='classifier')
+    #             layer_utils.convert_dense_weights_data_format(dense, shape, 'channels_first')
 
-        if K.image_data_format() == 'channels_first' and K.backend() == 'tensorflow':
-            warnings.warn('You are using the TensorFlow backend, yet you '
-                          'are using the Theano '
-                          'image data format convention '
-                          '(`image_data_format="channels_first"`). '
-                          'For best performance, set '
-                          '`image_data_format="channels_last"` in '
-                          'your Keras config '
-                          'at ~/.keras/keras.json.')
-    elif weights is not None:
-        model.load_weights(weights)
+    #     if K.image_data_format() == 'channels_first' and K.backend() == 'tensorflow':
+    #         warnings.warn('You are using the TensorFlow backend, yet you '
+    #                       'are using the Theano '
+    #                       'image data format convention '
+    #                       '(`image_data_format="channels_first"`). '
+    #                       'For best performance, set '
+    #                       '`image_data_format="channels_last"` in '
+    #                       'your Keras config '
+    #                       'at ~/.keras/keras.json.')
+    # elif weights is not None:
+    #     model.load_weights(weights)
 
 
     return model

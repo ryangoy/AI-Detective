@@ -2,7 +2,7 @@
 from pathlib import Path
 from typing import Callable, Dict, Optional
 
-from keras.optimizers import RMSprop
+from keras.optimizers import RMSprop, Adam
 import numpy as np
 
 from lie_detector.datasets.dataset_sequence import DatasetSequence
@@ -49,6 +49,7 @@ class Model:
 
         self.network.compile(loss=self.loss(), optimizer=self.optimizer(), metrics=self.metrics())
 
+        print(dataset.y_trn)
         train_sequence = DatasetSequence(
             dataset.X_trn,
             dataset.y_trn,
@@ -69,8 +70,8 @@ class Model:
             epochs=epochs,
             callbacks=callbacks,
             validation_data=test_sequence,
-            use_multiprocessing=True,
-            workers=2,
+            use_multiprocessing=False,
+            workers=1,
             shuffle=True
         )
 
@@ -85,13 +86,13 @@ class Model:
         print(y)
         return np.sqrt(np.sum(np.square(preds - y)))
 
-    def loss(self):  # pylint: disable=no-self-use
+    def loss(self):
         return 'binary_crossentropy'
 
-    def optimizer(self):  # pylint: disable=no-self-use
-        return RMSprop(lr=0.00001)
+    def optimizer(self):
+        return Adam()
 
-    def metrics(self):  # pylint: disable=no-self-use
+    def metrics(self):
         return ['accuracy']
 
     def load_weights(self):

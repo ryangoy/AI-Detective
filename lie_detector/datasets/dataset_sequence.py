@@ -24,7 +24,7 @@ class DatasetSequence(Sequence):
         self.batch_size = batch_size
         self.augment_fn = augment_fn
         self.format_fn = format_fn
-        self.x, self.y = _shuffle(self.x, self.y)
+        # self.x, self.y = _shuffle(self.x, self.y)
 
     def __len__(self):
         """Return length of the dataset."""

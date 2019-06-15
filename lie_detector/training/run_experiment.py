@@ -5,6 +5,7 @@ import json
 import importlib
 from typing import Dict
 import os
+import numpy as np
 
 
 import sys
@@ -83,6 +84,7 @@ def run_experiment(experiment_config: Dict, save_weights: bool, gpu_ind: int, us
 
     for k in range(dataset.num_folds):
         print('Running fold {}'.format(k))
+
         dataset.set_fold(k)
 
         print(dataset.X)
@@ -98,7 +100,7 @@ def run_experiment(experiment_config: Dict, save_weights: bool, gpu_ind: int, us
         if use_wandb:
             wandb.init()
             wandb.config.update(experiment_config)
-
+        
         train_model(
             model,
             dataset,
