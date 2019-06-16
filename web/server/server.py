@@ -6,7 +6,7 @@ from flask_cors import CORS
 import os
 import sys
 sys.path.insert(0, './')
-from lie_detector.video_face_detector import generate_cropped_face_video 
+from lie_detector.predict import predict_example
 # from tensorflow.keras import backend
 
 ALLOWED_EXTENSIONS = set(['mp4'])
@@ -30,9 +30,9 @@ def index():
 @app.route('/dev/face_percent', methods=['POST'])
 def face_percent():
     vpath = _load_video()
-    percent = generate_cropped_face_video(vpath)
-    print(percent)
-    return jsonify({'percent': percent})
+    percent = predict_example(vpath, '/home/ryan/cs/fs-lie-detector/lie_detector/training/experiments/base_LSTM.json')
+    
+    return jsonify({'percent': float(percent)})
 
 
 def _allowed_file(fname):

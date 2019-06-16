@@ -40,10 +40,8 @@ def predict_example(vpath, experiment_config_path):
     model = model_class_(dataset_cls=dataset_class_, network_fn=base_network_fn_, network_args=network_args, input_shape=[2048])
 
     preds = model.network.predict(X)
-
+    print("Example predicted with average score as {}".format(np.mean(preds)))
     return np.mean(preds)
-
-    return(preds)
 
 
 def fix_data_length(x):
