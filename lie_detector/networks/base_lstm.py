@@ -33,10 +33,7 @@ def LSTM(frames=64, face_net_model=None, hidden_units=512, weights=None, input_s
     if face_net_model is not None:
     	x = TimeDistributed(face_net_model, input_shape=(frames, face_net_model.output_shape[1]))(x)
 
-    x = layers.LSTM(units=hidden_units, return_sequences=True, dropout=dropout)(x)
     x = layers.LSTM(units=hidden_units, return_sequences=False, dropout=dropout)(x)
-    x = Dense(1024, activation='relu')(x)
-    x = Dropout(dropout)(x)
     x = Dense(512, activation='relu')(x)
     x = Dropout(dropout)(x)
 

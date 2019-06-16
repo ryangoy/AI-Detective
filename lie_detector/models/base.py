@@ -8,7 +8,7 @@ import numpy as np
 from lie_detector.datasets.dataset_sequence import DatasetSequence
 
 
-DIRNAME = Path(__file__).parents[1].resolve() / 'weights'
+DIRNAME = Path(__file__).parents[1].resolve() / 'weights' / 'cache'
 
 
 class Model:

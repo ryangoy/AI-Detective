@@ -1,6 +1,9 @@
 """
 Real life dataset. Downloads from UMichigan website and saves as .npz file if not already present.
 """
+
+# to do: move settings to metadata file
+
 import json
 import os
 from pathlib import Path
@@ -10,7 +13,7 @@ import h5py
 import numpy as np
 import toml
 import pandas as pd
-from sklearn.model_selection import KFold
+from sklearn.model_selection import GroupKFold
 
 from lie_detector.datasets.dataset import _download_raw_dataset, Dataset, _parse_args
 from lie_detector.video_face_detector import generate_cropped_face_video
@@ -26,7 +29,10 @@ PROCESSED_LABELS_FILENAME = PROCESSED_DATA_DIRNAME / 'y.npy'
 
 ANNOTATION_CSV_FILENAME = 'TrialData/Annotation/All_Gestures_Deceptive and Truthful.csv'
 
+
+
 class TrialDataset(Dataset):
+
 
     def __init__(self, subsample_fraction: float = None, num_folds: int = 3, frames_per_sample = 64):
         if not os.path.exists(str(PROCESSED_DATA_FILENAME)):
@@ -37,6 +43,7 @@ class TrialDataset(Dataset):
         self.subsample_fraction = subsample_fraction
         self.X = None
         self.y = None
+        self.groups = None
 
         self.num_folds = num_folds 
         self.trn_folds = []
@@ -49,6 +56,7 @@ class TrialDataset(Dataset):
         if not os.path.exists(str(PROCESSED_DATA_FILENAME)):
             _download_and_process_trial()
         
+        print("\nLoading Trial Dataset into memory...")
         self.X = np.load(PROCESSED_DATA_FILENAME, allow_pickle=True)
         self.y = np.load(PROCESSED_LABELS_FILENAME)
         self._fix_data_length()
@@ -61,18 +69,21 @@ class TrialDataset(Dataset):
     def _fix_data_length(self):
         X_new = []
         y_new = []
+        groups = []
         for i, x in enumerate(self.X):
             n_samps = len(x) // self.frames_per_sample
             for j in range(n_samps):
                 X_new.append(x[j*self.frames_per_sample: (j+1)*self.frames_per_sample])
                 y_new.append(self.y[i])
+                groups.append(i)
         self.X = np.array(X_new)
         self.y = np.array(y_new)
+        self.groups = np.array(groups)
 
 
     def _initialize_fold(self):
-        kf = KFold(n_splits=self.num_folds, random_state=0, shuffle=True)
-        for trn_index, val_index in kf.split(self.X):
+        kf = GroupKFold(n_splits=self.num_folds)
+        for trn_index, val_index in kf.split(self.X, groups=self.groups):
             self.trn_folds.append(trn_index)
             self.val_folds.append(val_index)
 
@@ -116,7 +127,7 @@ def _process_raw_dataset(filename: str):
         os.rename('temp/Real-life_Deception_Detection_2016/', 'TrialData/')
         os.rmdir('temp')  
 
-    print('Loading training data from folder')
+    print('\nLoading training data from folder')
 
     X_fnames = []
     y = []
@@ -139,7 +150,7 @@ def _process_raw_dataset(filename: str):
     #     X, y = _sample_to_balance(x_train, y_train)
     X = []
 
-    print('Detecting face in videos...')
+    print('\nDetecting face in videos...')
     for counter, f in enumerate(X_fnames):
         X.append(generate_cropped_face_video(f, fps=10))
         if (counter+1) % 1 == 0:
