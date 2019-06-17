@@ -1,21 +1,28 @@
 #!/usr/bin/env python
 """Script to run an experiment."""
 import argparse
-import json
 import importlib
-from typing import Dict
-import os
+import json
+import keras.backend as K
 import numpy as np
-
-
+import os
 import sys
-sys.path.insert(0, './')
+import tensorflow as tf
+from time import time
+from typing import Dict, Optional
 import wandb
-from lie_detector.training.train_model import train_model
+from wandb.keras import WandbCallback
 
+sys.path.insert(0, './')
+from lie_detector.datasets.dataset import Dataset
+from lie_detector.models.base import Model
+
+K.set_image_dim_ordering('tf')
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2' 
+# dir_path = os.path.dirname(os.path.realpath(__file__))
 DEFAULT_TRAIN_ARGS = {
     'batch_size': 4,
-    'epochs': 16
+    'epochs': 5
 }
 
 
@@ -50,14 +57,13 @@ def run_experiment(experiment_config: Dict, save_weights: bool, gpu_ind: int, us
     use_wandb (bool)
         sync training run to wandb
     """
-    print('Running experiment with config {} on GPU {}'.format(experiment_config, gpu_ind))
+    print('\nRunning experiment with config {} on GPU {}'.format(experiment_config, gpu_ind))
 
     datasets_module = importlib.import_module('lie_detector.datasets')
     dataset_class_ = getattr(datasets_module, experiment_config['dataset'])
     dataset_args = experiment_config.get('dataset_args', {})
     dataset = dataset_class_(**dataset_args)
     dataset.load_or_generate_data()
-    print(dataset)
 
     models_module = importlib.import_module('lie_detector.models')
     model_class_ = getattr(models_module, experiment_config['model'])
@@ -67,27 +73,21 @@ def run_experiment(experiment_config: Dict, save_weights: bool, gpu_ind: int, us
     head_network_fn_ = getattr(networks_module, experiment_config['head_network'])
     network_args = experiment_config.get('network_args', {})
 
-
     experiment_config['train_args'] = {**DEFAULT_TRAIN_ARGS, **experiment_config.get('train_args', {})}
     experiment_config['experiment_group'] = experiment_config.get('experiment_group', None)
     experiment_config['gpu_ind'] = gpu_ind
-
     
     if experiment_config['end2end'] == "False":
-        # process data through cnn
+        print('Initializing feature model...')
         feature_model_class_ = getattr(models_module, experiment_config['feature_model'])
         feature_model = feature_model_class_(network_fn=head_network_fn_)
-        dataset.X = feature_model.generate_features(dataset.X, dataset.y)
-        dataset.input_shape = [dataset.X.shape[-1]]
-
-    # k fold here when applicable
+        dataset.preprocess(feature_model.generate_features)
 
     for k in range(dataset.num_folds):
-        print('Running fold {}'.format(k))
-
+        print('\nRunning fold {}'.format(k))
         dataset.set_fold(k)
 
-        print(dataset.X)
+        print('Initializing model...')
         model = model_class_(
             dataset_cls=dataset_class_,
             network_fn=base_network_fn_,
@@ -96,13 +96,12 @@ def run_experiment(experiment_config: Dict, save_weights: bool, gpu_ind: int, us
             input_shape=dataset.input_shape
         )
 
-
         if use_wandb:
             wandb.init()
             wandb.config.update(experiment_config)
         
-        train_model(
-            model,
+        print('Beginning training...')
+        history = model.train_model(
             dataset,
             epochs=experiment_config['train_args']['epochs'],
             batch_size=experiment_config['train_args']['batch_size'],
@@ -120,6 +119,8 @@ def run_experiment(experiment_config: Dict, save_weights: bool, gpu_ind: int, us
 
         if save_weights:
             model.save_weights()
+
+
 
 
 def _parse_args():
@@ -156,8 +157,6 @@ def _parse_args():
 def main():
     """Run experiment."""
     args = _parse_args()
-
-
     experiment_config = json.loads(args.experiment_config)
     os.environ["CUDA_VISIBLE_DEVICES"] = str(args.gpu)
     run_experiment(experiment_config, args.save, args.gpu, use_wandb=not args.nowandb)

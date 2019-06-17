@@ -18,7 +18,7 @@ from sklearn.model_selection import GroupKFold
 from lie_detector.datasets.dataset import _download_raw_dataset, Dataset, _parse_args
 from lie_detector.video_face_detector import generate_cropped_face_video
 
-SAMPLE_TO_BALANCE = True  # If true, take at most the mean number of instances per class.
+SAMPLE_TO_BALANCE = False  # If true, take at most the mean number of instances per class.
 
 RAW_DATA_DIRNAME = Dataset.data_dirname() / 'raw'
 METADATA_FILENAME = Dataset.data_dirname() / 'metadata.toml'
@@ -30,7 +30,6 @@ PROCESSED_LABELS_FILENAME = PROCESSED_DATA_DIRNAME / 'y.npy'
 ANNOTATION_CSV_FILENAME = 'TrialData/Annotation/All_Gestures_Deceptive and Truthful.csv'
 
 
-
 class TrialDataset(Dataset):
 
 
@@ -39,18 +38,16 @@ class TrialDataset(Dataset):
             _download_and_process_trial()
 
         self.output_shape = 1
-
         self.subsample_fraction = subsample_fraction
         self.X = None
         self.y = None
         self.groups = None
-
         self.num_folds = num_folds 
         self.trn_folds = []
         self.val_folds = []
-
         self.input_shape = [224, 224, 3]
         self.frames_per_sample = frames_per_sample
+
 
     def load_or_generate_data(self):
         if not os.path.exists(str(PROCESSED_DATA_FILENAME)):
@@ -59,12 +56,13 @@ class TrialDataset(Dataset):
         print("\nLoading Trial Dataset into memory...")
         self.X = np.load(PROCESSED_DATA_FILENAME, allow_pickle=True)
         self.y = np.load(PROCESSED_LABELS_FILENAME)
+        if SAMPLE_TO_BALANCE:
+            print('Balancing classes to reduce amount of data')
+            X, y = _sample_to_balance(x_train, y_train)
         self._fix_data_length()
-        # with h5py.File(PROCESSED_DATA_FILENAME, 'r') as f:
-        #     self.X = f['X'][:]
-        #     self.y = f['y'][:]
         self._initialize_fold()
         # self._subsample()
+
 
     def _fix_data_length(self):
         X_new = []
@@ -87,6 +85,7 @@ class TrialDataset(Dataset):
             self.trn_folds.append(trn_index)
             self.val_folds.append(val_index)
 
+
     def set_fold(self, index):
         self.X_trn = self.X[self.trn_folds[index]]
         self.y_trn = self.y[self.trn_folds[index]]
@@ -105,6 +104,9 @@ class TrialDataset(Dataset):
         self.x_test = self.x_test[:num_test]
         self.y_test_int = self.y_test_int[:num_test]
 
+    def preprocess(self, fn):
+        self.X, self.y = fn(self.X, self.y)
+        self.input_shape = [self.X.shape[-1]]
 
 
 def _download_and_process_trial():
@@ -144,12 +146,7 @@ def _process_raw_dataset(filename: str):
         microexpressions.append(list(annotation_csv[annotation_csv.id==f]))
         y.append(0)
 
-
-    # if SAMPLE_TO_BALANCE:
-    #     print('Balancing classes to reduce amount of data')
-    #     X, y = _sample_to_balance(x_train, y_train)
     X = []
-
     print('\nDetecting face in videos...')
     for counter, f in enumerate(X_fnames):
         X.append(generate_cropped_face_video(f, fps=10))
@@ -157,32 +154,8 @@ def _process_raw_dataset(filename: str):
             print('Successfully detected faces in video {}/{} with shape {}'.format(counter+1, len(X_fnames), np.array(X[counter]).shape))
     X = np.array(X)
     y = np.array(y)
-
     np.save(os.path.join(PROCESSED_DATA_DIRNAME, 'X_faces.npy'), X)
     np.save(os.path.join(PROCESSED_DATA_DIRNAME, 'y.npy'), y)
-
-    
-
-    # print('Saving to HDF5 in a compressed format...')
-    # PROCESSED_DATA_DIRNAME.mkdir(parents=True, exist_ok=True)
-    # with h5py.File(PROCESSED_DATA_FILENAME, 'w') as f:
-    #     f.create_dataset('X', data=X, dtype='u1', compression='lzf')
-    #     f.create_dataset('y', data=y, dtype='u1', compression='lzf')
-
-
-# def _sample_to_balance(x, y):
-#     """Because the dataset is not balanced, we take at most the mean number of instances per class."""
-#     np.random.seed(0)
-#     num_to_sample = int(np.bincount(y.flatten()).mean())
-#     all_sampled_inds = []
-#     for label in np.unique(y.flatten()):
-#         inds = np.where(y == label)[0]
-#         sampled_inds = np.unique(np.random.choice(inds, num_to_sample))
-#         all_sampled_inds.append(sampled_inds)
-#     ind = np.concatenate(all_sampled_inds)
-#     x_sampled = x[ind]
-#     y_sampled = y[ind]
-#     return x_sampled, y_sampled
 
 
 def main():

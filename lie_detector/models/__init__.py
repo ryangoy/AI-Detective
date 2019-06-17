@@ -1,2 +1,2 @@
-from .lstm_model import LSTMModel
-from .cnn_model import CNNModel
+from .base_model import BaseModel
+from .feature_model import CNNModel

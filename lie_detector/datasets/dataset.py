@@ -26,6 +26,20 @@ def _download_raw_dataset(metadata):
     # if sha256 != metadata['sha256']:
     #     raise ValueError('Downloaded data file SHA-256 does not match that listed in metadata document.')
 
+def _sample_to_balance(x, y):
+    """Because the dataset is not balanced, we take at most the mean number of instances per class."""
+    np.random.seed(0)
+    num_to_sample = int(np.bincount(y.flatten()).mean())
+    all_sampled_inds = []
+    for label in np.unique(y.flatten()):
+        inds = np.where(y == label)[0]
+        sampled_inds = np.unique(np.random.choice(inds, num_to_sample))
+        all_sampled_inds.append(sampled_inds)
+    ind = np.concatenate(all_sampled_inds)
+    x_sampled = x[ind]
+    y_sampled = y[ind]
+    return x_sampled, y_sampled
+
 
 def _parse_args():
     parser = argparse.ArgumentParser()

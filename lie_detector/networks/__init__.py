@@ -1,2 +1,2 @@
-from .base_lstm import LSTM
-from .face_net import SENET50, RESNET50
+from .lstm_network import LSTM
+from .feature_network import SENET50, RESNET50
