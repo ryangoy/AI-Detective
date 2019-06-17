@@ -6,6 +6,7 @@ import numpy as np
 from keras.callbacks import EarlyStopping
 from time import time
 from typing import Dict, Optional
+from sklearn.metrics import mean_squared_error
 
 from lie_detector.datasets.dataset_sequence import DatasetSequence
 from lie_detector.datasets.dataset import Dataset
@@ -105,7 +106,7 @@ class Model:
         y = np.array(y).reshape((length,))
         preds = np.array(preds).reshape((length,))
 
-        return np.sqrt(np.sum(np.square(preds - y)))
+        return mean_squared_error(preds, y)
 
     def loss(self):
         if 'loss' in self.network_args:

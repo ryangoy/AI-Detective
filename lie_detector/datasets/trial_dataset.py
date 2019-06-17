@@ -50,6 +50,7 @@ class TrialDataset(Dataset):
 
 
     def load_or_generate_data(self):
+        self.metadata = toml.load(METADATA_FILENAME)
         if not os.path.exists(str(PROCESSED_DATA_FILENAME)):
             _download_and_process_trial()
         
@@ -68,12 +69,15 @@ class TrialDataset(Dataset):
         X_new = []
         y_new = []
         groups = []
+        metadata_groups = self.metadata['trial']['groups']['Deceptive'] + self.metadata['trial']['groups']['Truthful']
         for i, x in enumerate(self.X):
+            if metadata_groups[i] == -1:
+                continue
             n_samps = len(x) // self.frames_per_sample
             for j in range(n_samps):
                 X_new.append(x[j*self.frames_per_sample: (j+1)*self.frames_per_sample])
                 y_new.append(self.y[i])
-                groups.append(i)
+                groups.append(metadata_groups[i])
         self.X = np.array(X_new)
         self.y = np.array(y_new)
         self.groups = np.array(groups)
@@ -110,11 +114,10 @@ class TrialDataset(Dataset):
 
 
 def _download_and_process_trial():
-    metadata = toml.load(METADATA_FILENAME)
     curdir = os.getcwd()
     os.chdir(str(RAW_DATA_DIRNAME))
-    _download_raw_dataset(metadata['trial'])
-    _process_raw_dataset(metadata['trial']['filename'])
+    _download_raw_dataset(self.metadata['trial'])
+    _process_raw_dataset(self.metadata['trial']['filename'])
     os.chdir(curdir)
 
 

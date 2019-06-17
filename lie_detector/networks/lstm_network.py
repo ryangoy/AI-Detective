@@ -20,7 +20,7 @@ from keras import layers
 
 # if face_net_model is given, input of shape (batches, frames, x, y, 1)
 # if face_net_model is none, input of shape (batches, frames, features)
-def LSTM(frames=64, face_net_model=None, hidden_units=512, weights=None, input_shape=None, dropout=0.5):
+def LSTM(frames=64, face_net_model=None, hidden_units=64, weights=None, input_shape=None, dropout=0.5):
 
     img_input = Input(shape=[frames,]+input_shape)
 
@@ -34,7 +34,7 @@ def LSTM(frames=64, face_net_model=None, hidden_units=512, weights=None, input_s
     	x = TimeDistributed(face_net_model, input_shape=(frames, face_net_model.output_shape[1]))(x)
 
     x = layers.LSTM(units=hidden_units, return_sequences=False, dropout=dropout)(x)
-    x = Dense(512, activation='relu')(x)
+    x = Dense(32, activation='relu')(x)
     x = Dropout(dropout)(x)
 
     x = Dense(1, activation='sigmoid')(x)
