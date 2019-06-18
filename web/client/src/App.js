@@ -1,13 +1,18 @@
 import React, { Component } from "react";
 import axios from 'axios';
+
 import { Progress } from 'reactstrap';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import './App.css'
+import Pipeline from "./components/Pipeline"
 
+import openSocket from 'socket.io-client'
+
+const socket = openSocket('http://localhost:5000');
 
 class App extends Component {
-  
+
   constructor(props) {
     super(props);
     this.state = {
@@ -17,15 +22,33 @@ class App extends Component {
       percent:-1,
       show_file_upload_progress: false,
       show_spinner: false,
-      show_stage1_header: false,
-      show_stage1_stats: false,
-      loading: false,
-      stage: 'face tracking'
+      show_result: false,
+      stage: 'none',
+      completed_stages: []
     }
+    this.subscribeToPipelineUpdates();
   }
 
+
+  subscribeToPipelineUpdates = () => {
+    socket.on('stage', (s) => {
+        
+
+        if (this.state.stage !== 'none') {
+            this.setState({completed_stages:this.state.completed_stages.concat([this.state.stage])})
+        } else {
+            this.setState({show_spinner:true})
+        }
+        this.setState({stage:s})
+        if (s === 'completed') {
+            this.setState({show_result:true})
+        }
+
+    });
+  } 
+
   // when a file is selected
-  onChangeHandler= (event) =>{
+  onChangeHandler = (event) =>{
     if(this.checkFileType(event)){ 
       this.setState({
         selectedFile: event.target.files[0],
@@ -45,7 +68,7 @@ class App extends Component {
       const data = new FormData() 
       data.append('file', this.state.selectedFile)
 
-      axios.post("http://localhost:8000/dev/face_percent", data, {
+      axios.post("http://localhost:5000/dev/face_percent", data, {
         
         onUploadProgress: ProgressEvent => {
           this.setState({
@@ -57,9 +80,7 @@ class App extends Component {
         const percent = res.data['percent']*100;
         return percent
       }).then(percent => {
-        this.setState({percent, stage:'speech to text', show_stage1_stats:true});
-        toast(this.state.percent)
-
+        this.setState({percent, show_spinner:false});
       })
 
     }
@@ -103,6 +124,7 @@ class App extends Component {
         <div className="form-group">
          <ToastContainer />
         </div>
+
         { this.state.show_file_upload_progress ?
           <div className="form-group col-md-5 center-div mt-3">
               <Progress max="100" color="success" value={this.state.loaded} >{Math.round(this.state.loaded,2) }%</Progress>
@@ -110,18 +132,14 @@ class App extends Component {
           :
           <div></div>
         }
-
-          <div className={this.state.show_stage1_stats?'fadeInText':'fadeOutText'}>
-            <h2>Stage 1 Complete</h2>
-            <p>Face tracking finished successfully. A face was detected in <b>{this.state.percent.toFixed(2)}%</b> of frames.</p>
-          </div>
-
-          <div className={this.state.show_spinner?'fadeInSpinner':'fadeOutSpinner'}>
+        <div>
+        <Pipeline stage={this.state.stage} 
+                  completed_stages={this.state.completed_stages}
+                  show_spinner={this.state.show_spinner}
+                  show_result={this.state.show_result}
+                  percent={this.state.percent}/>
+        </div>
           
-            <img className="row" src={process.env.PUBLIC_URL + "spinner.gif"}/>
-            <p>Running <b>{this.state.stage}</b>...</p>
-          </div>
-
           
 
       </div>

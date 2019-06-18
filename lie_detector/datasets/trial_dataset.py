@@ -110,8 +110,8 @@ class TrialDataset(Dataset):
 
     def preprocess(self, fn):
         self.X, self.y = fn(self.X, self.y)
-        self.input_shape = [self.X.shape[-1]]
 
+        self.input_shape = [self.X.shape[-1]]
 
 def _download_and_process_trial():
     curdir = os.getcwd()

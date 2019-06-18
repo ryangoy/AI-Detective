@@ -1,11 +1,11 @@
 {
 	"dataset": "TrialDataset", 
 	"feature_model":"CNNModel", 
-	"model": "LSTMModel", 
+	"model": "BaseModel", 
 	"base_network": "LSTM", 
 	"head_network": "RESNET50", 
 	"train_args": {
-		"batch_size": 256, 
+		"batch_size": 8, 
 		"end2end": "False"
 	},
 	"network_args": {

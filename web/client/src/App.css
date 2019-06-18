@@ -26,11 +26,31 @@
 .fadeInText{
 	 margin: auto;
 	 margin-top: 50px;
-	 margin-bottom: -30px;
+	 margin-bottom: 180px;
      opacity:1;
-     width:550px;
+     width:700px;
      height:100px;
+     text-align: center;
 
      transition: width 2s, height 2s, opacity 2s 2s;
 
+}
+
+.example-enter {
+  opacity: 0.01;
+}
+
+.example-enter.example-enter-active {
+  opacity: 1;
+  transition: 2000ms;
+}
+
+.example-leave {
+  opacity: 1;
+
+}
+
+.example-leave.example-leave-active {
+  opacity: 0.01;
+  transition: 2000ms;
 }

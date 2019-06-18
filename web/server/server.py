@@ -3,10 +3,12 @@
 from flask import Flask, request, jsonify, flash, redirect, url_for
 from werkzeug.utils import secure_filename
 from flask_cors import CORS
+from flask_socketio import SocketIO, emit
 import os
 import sys
 sys.path.insert(0, './')
 from lie_detector.predict import predict_example
+import time
 # from tensorflow.keras import backend
 
 ALLOWED_EXTENSIONS = set(['mp4'])
@@ -14,6 +16,7 @@ ALLOWED_EXTENSIONS = set(['mp4'])
 
 app = Flask(__name__)
 CORS(app)
+socketio = SocketIO(app)
 
 app.config['UPLOAD_FOLDER'] = 'uploads'
 
@@ -29,11 +32,14 @@ def index():
 
 @app.route('/dev/face_percent', methods=['POST'])
 def face_percent():
+    socketio.emit('stage', 'video upload protocol')
+    time.sleep(2)
     vpath = _load_video()
-    percent = predict_example(vpath, '/home/ryan/cs/fs-lie-detector/lie_detector/training/experiments/base_LSTM.json')
+
+    
+    percent = predict_example(vpath, '/home/ryan/cs/fs-lie-detector/lie_detector/training/experiments/base_LSTM.json', socketio)
     
     return jsonify({'percent': float(percent)})
-
 
 def _allowed_file(fname):
     return '.' in fname and fname.split('.')[1].lower() in ALLOWED_EXTENSIONS
@@ -58,7 +64,7 @@ def _load_video():
 
 
 def main():
-    app.run(port=8000, debug=False)  # nosec
+    socketio.run(app, debug=False)  # nosec
 
 
 if __name__ == '__main__':

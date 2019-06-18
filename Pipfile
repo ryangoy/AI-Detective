@@ -17,6 +17,7 @@ toml = "*"
 tqdm = "*"
 pandas = "*"
 sklearn = "*"
+flask-socketio = "*"
 
 [requires]
 python_version = "3.5"

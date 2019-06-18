@@ -4,18 +4,27 @@ import os
 import numpy as np
 import sys
 sys.path.insert(0, './')
+import tensorflow as tf
 from lie_detector.video_face_detector import generate_cropped_face_video
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2' 
+import time
 # to do: change magic numbers
 # to do: automatically import correct models
 # to do: rename head_network feature_network, rename model_class to base_model_class
 
-def predict_example(vpath, experiment_config_path):
+def predict_example(vpath, experiment_config_path, socketio=None):
     with open(experiment_config_path) as f:
 
         experiment_config = json.load(f)
 
+    if socketio:
+        socketio.emit('stage', 'initialization')
+        time.sleep(2)
+        print('done sleepin')
     datasets_module = importlib.import_module('lie_detector.datasets')
     dataset_class_ = getattr(datasets_module, experiment_config['dataset'])
+
+
     # dataset_args = experiment_config.get('dataset_args', {})
     # dataset = dataset_class_(**dataset_args)
     # dataset.load_or_generate_data()
@@ -29,18 +38,31 @@ def predict_example(vpath, experiment_config_path):
     head_network_fn_ = getattr(networks_module, experiment_config['head_network'])
     network_args = experiment_config.get('network_args', {})
 
+    if socketio:
+        socketio.emit('stage', 'face detection')
     face_cropped = generate_cropped_face_video(vpath)
     X = fix_data_length(face_cropped)
     
     
     feature_model = feature_model_class_(network_fn=head_network_fn_)
 
-    X = feature_model.generate_features(X)
+    if socketio:
+        socketio.emit('stage', 'video feature generation')
+    X, _ = feature_model.generate_features(X)
 
-    model = model_class_(dataset_cls=dataset_class_, network_fn=base_network_fn_, network_args=network_args, input_shape=[2048])
+    model = model_class_(dataset_cls=dataset_class_, network_fn=base_network_fn_, network_args=network_args, input_shape=[X.shape[-1]])
     model.load_weights()
+
+    if socketio:
+        socketio.emit('stage', 'prediction')
+        time.sleep(2)
     preds = model.network.predict(X)
     print("Example predicted with average score as {}".format(np.mean(preds)))
+    
+    # if socketio:
+    #     socketio.emit('stage', {'stage': 'done'})
+    if socketio:
+        socketio.emit('stage', 'completed')
     return np.mean(preds)
 
 
