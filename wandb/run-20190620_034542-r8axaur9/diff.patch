@@ -1,0 +1,99 @@
+diff --git a/lie_detector/models/base.py b/lie_detector/models/base.py
+index 7c8e38e..7bac40a 100644
+--- a/lie_detector/models/base.py
++++ b/lie_detector/models/base.py
+@@ -7,6 +7,7 @@ from keras.callbacks import EarlyStopping
+ from time import time
+ from typing import Dict, Optional
+ from sklearn.metrics import mean_squared_error
++from wandb.keras import WandbCallback
+ 
+ from lie_detector.datasets.dataset_sequence import DatasetSequence
+ from lie_detector.datasets.dataset import Dataset
+@@ -85,14 +86,11 @@ class Model:
+             early_stopping = EarlyStopping(monitor='val_loss', min_delta=0.01, patience=3, verbose=1, mode='auto')
+             callbacks.append(early_stopping)
+ 
+-        # Hide lines below until Lab 4
+         if use_wandb:
+-            wandb.init()
++            wandb.init(project='fs-lie-detector', group='kfolds')
+             wandb_callback = WandbCallback()
+             callbacks.append(wandb_callback)
+ 
+-        # model.network.summary()
+-
+         t = time()
+         history = self.fit(dataset=dataset, batch_size=batch_size, epochs=epochs, callbacks=callbacks)
+         print('Training took {:2f} s'.format(time() - t))
+diff --git a/lie_detector/training/run_experiment.py b/lie_detector/training/run_experiment.py
+index b6e2969..6a33d98 100644
+--- a/lie_detector/training/run_experiment.py
++++ b/lie_detector/training/run_experiment.py
+@@ -97,7 +97,7 @@ def run_experiment(experiment_config: Dict, save_weights: bool, gpu_ind: int, us
+         )
+ 
+         if use_wandb:
+-            wandb.init()
++            wandb.init(project='fs-lie-detector', group='kfolds')
+             wandb.config.update(experiment_config)
+         
+         print('Beginning training...')
+@@ -145,9 +145,9 @@ def _parse_args():
+         default="{\"dataset\": \"TrialDataset\", \"model\": \"LSTMModel\", \"network\": \"LSTM\", \"end2end\": \"False\"}"
+     )
+     parser.add_argument(
+-        "--nowandb",
+-        default=True,
+-        action='store_false',
++        "--wandb",
++        default=False,
++        action='store_true',
+         help='If true, do not use wandb for this run'
+     )
+     args = parser.parse_args()
+@@ -159,7 +159,7 @@ def main():
+     args = _parse_args()
+     experiment_config = json.loads(args.experiment_config)
+     os.environ["CUDA_VISIBLE_DEVICES"] = str(args.gpu)
+-    run_experiment(experiment_config, args.save, args.gpu, use_wandb=not args.nowandb)
++    run_experiment(experiment_config, args.save, args.gpu, use_wandb=args.wandb)
+ 
+ 
+ if __name__ == '__main__':
+diff --git a/tasks/train_lstm.sh b/tasks/train_lstm.sh
+index 7df6f30..a964d9c 100644
+--- a/tasks/train_lstm.sh
++++ b/tasks/train_lstm.sh
+@@ -1,2 +1,2 @@
+ #!/bin/bash
+-python lie_detector/training/run_experiment.py --save --experiment_config '{"dataset": "TrialDataset", "feature_model":"CNNModel", "model": "BaseModel", "base_network": "LSTM", "head_network": "RESNET50", "train_args": {"batch_size": 8}, "network_args": {"frames":64}, "end2end": "False"}'
++python lie_detector/training/run_experiment.py --save --wandb --experiment_config '{"dataset": "TrialDataset", "feature_model":"CNNModel", "model": "BaseModel", "base_network": "LSTM", "head_network": "RESNET50", "train_args": {"batch_size": 8}, "network_args": {"frames":64}, "end2end": "False"}'
+diff --git a/web/client/src/App.js b/web/client/src/App.js
+index 8a756c8..e4eed7c 100644
+--- a/web/client/src/App.js
++++ b/web/client/src/App.js
+@@ -64,7 +64,9 @@ class App extends Component {
+     }
+     else {
+       this.setState({show_file_upload_progress: true,
+-                     show_spinner: true})
++                     show_spinner: true,
++                     stage: 'none',
++                     completed_stages: []})
+       const data = new FormData() 
+       data.append('file', this.state.selectedFile)
+ 
+diff --git a/web/client/src/components/StageSummary.js b/web/client/src/components/StageSummary.js
+index 6a815e4..1699fd1 100644
+--- a/web/client/src/components/StageSummary.js
++++ b/web/client/src/components/StageSummary.js
+@@ -5,7 +5,7 @@ export default class StageSummary extends React.Component {
+ 
+     render() {
+         return (<div className="form-group col-md-5 center-div mt-3">
+-                  <h2>Stage {this.props.id + 1} Complete</h2>
++                  <h3>Stage {this.props.id + 1} Complete</h3>
+                   <p>{this.props.stage} finished successfully</p>
+                 </div>)
+     }

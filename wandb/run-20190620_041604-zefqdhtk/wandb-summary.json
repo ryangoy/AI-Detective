@@ -1,0 +1,86 @@
+{
+    "acc": 0.8913043478260869,
+    "_timestamp": 1561004198.0197144,
+    "epoch": 4,
+    "graph": {
+        "_type": "graph",
+        "nodes": [
+            {
+                "name": "input_4",
+                "id": "input_4",
+                "output_shape": [
+                    null,
+                    64,
+                    2048
+                ],
+                "class_name": "InputLayer",
+                "num_parameters": 0
+            },
+            {
+                "name": "lstm_3",
+                "id": "lstm_3",
+                "output_shape": [
+                    null,
+                    64
+                ],
+                "class_name": "LSTM",
+                "num_parameters": 540928
+            },
+            {
+                "name": "dense_5",
+                "id": "dense_5",
+                "output_shape": [
+                    null,
+                    32
+                ],
+                "class_name": "Dense",
+                "num_parameters": 2080
+            },
+            {
+                "name": "dropout_3",
+                "id": "dropout_3",
+                "output_shape": [
+                    null,
+                    32
+                ],
+                "class_name": "Dropout",
+                "num_parameters": 0
+            },
+            {
+                "name": "dense_6",
+                "id": "dense_6",
+                "output_shape": [
+                    null,
+                    1
+                ],
+                "class_name": "Dense",
+                "num_parameters": 33
+            }
+        ],
+        "format": "keras",
+        "edges": [
+            [
+                "input_4",
+                "lstm_3"
+            ],
+            [
+                "lstm_3",
+                "dense_5"
+            ],
+            [
+                "dense_5",
+                "dropout_3"
+            ],
+            [
+                "dropout_3",
+                "dense_6"
+            ]
+        ]
+    },
+    "test_metric": 0.24568405517731604,
+    "val_loss": 0.6842828361611617,
+    "_runtime": 125.50858306884766,
+    "val_acc": 0.6052631578947368,
+    "loss": 0.29454937175564144,
+    "_step": 17
+}

@@ -77,7 +77,7 @@ def run_experiment(experiment_config: Dict, save_weights: bool, gpu_ind: int, us
     experiment_config['experiment_group'] = experiment_config.get('experiment_group', None)
     experiment_config['gpu_ind'] = gpu_ind
     
-    if experiment_config['end2end'] == "False":
+    if experiment_config['network_args']['end2end'] == "False":
         print('Initializing feature model...')
         feature_model_class_ = getattr(models_module, experiment_config['feature_model'])
         feature_model = feature_model_class_(network_fn=head_network_fn_)
@@ -97,7 +97,7 @@ def run_experiment(experiment_config: Dict, save_weights: bool, gpu_ind: int, us
         )
 
         if use_wandb:
-            wandb.init()
+            wandb.init(project='fs-lie-detector', group='kfolds')
             wandb.config.update(experiment_config)
         
         print('Beginning training...')
@@ -145,9 +145,9 @@ def _parse_args():
         default="{\"dataset\": \"TrialDataset\", \"model\": \"LSTMModel\", \"network\": \"LSTM\", \"end2end\": \"False\"}"
     )
     parser.add_argument(
-        "--nowandb",
-        default=True,
-        action='store_false',
+        "--wandb",
+        default=False,
+        action='store_true',
         help='If true, do not use wandb for this run'
     )
     args = parser.parse_args()
@@ -159,7 +159,7 @@ def main():
     args = _parse_args()
     experiment_config = json.loads(args.experiment_config)
     os.environ["CUDA_VISIBLE_DEVICES"] = str(args.gpu)
-    run_experiment(experiment_config, args.save, args.gpu, use_wandb=not args.nowandb)
+    run_experiment(experiment_config, args.save, args.gpu, use_wandb=args.wandb)
 
 
 if __name__ == '__main__':

@@ -64,7 +64,9 @@ class App extends Component {
     }
     else {
       this.setState({show_file_upload_progress: true,
-                     show_spinner: true})
+                     show_spinner: true,
+                     stage: 'none',
+                     completed_stages: []})
       const data = new FormData() 
       data.append('file', this.state.selectedFile)
 

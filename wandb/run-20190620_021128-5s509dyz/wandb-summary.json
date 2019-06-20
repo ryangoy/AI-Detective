@@ -1,0 +1,86 @@
+{
+    "acc": 0.8304347831269969,
+    "val_acc": 0.6666666666666666,
+    "_runtime": 128.3135039806366,
+    "val_loss": 0.5892835803199232,
+    "graph": {
+        "format": "keras",
+        "edges": [
+            [
+                "input_4",
+                "lstm_3"
+            ],
+            [
+                "lstm_3",
+                "dense_5"
+            ],
+            [
+                "dense_5",
+                "dropout_3"
+            ],
+            [
+                "dropout_3",
+                "dense_6"
+            ]
+        ],
+        "_type": "graph",
+        "nodes": [
+            {
+                "output_shape": [
+                    null,
+                    64,
+                    2048
+                ],
+                "id": "input_4",
+                "name": "input_4",
+                "class_name": "InputLayer",
+                "num_parameters": 0
+            },
+            {
+                "output_shape": [
+                    null,
+                    64
+                ],
+                "id": "lstm_3",
+                "name": "lstm_3",
+                "class_name": "LSTM",
+                "num_parameters": 540928
+            },
+            {
+                "output_shape": [
+                    null,
+                    32
+                ],
+                "id": "dense_5",
+                "name": "dense_5",
+                "class_name": "Dense",
+                "num_parameters": 2080
+            },
+            {
+                "output_shape": [
+                    null,
+                    32
+                ],
+                "id": "dropout_3",
+                "name": "dropout_3",
+                "class_name": "Dropout",
+                "num_parameters": 0
+            },
+            {
+                "output_shape": [
+                    null,
+                    1
+                ],
+                "id": "dense_6",
+                "name": "dense_6",
+                "class_name": "Dense",
+                "num_parameters": 33
+            }
+        ]
+    },
+    "test_metric": 0.20514158997199233,
+    "epoch": 4,
+    "_step": 17,
+    "_timestamp": 1560996722.1974618,
+    "loss": 0.35913323578627215
+}

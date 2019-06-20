@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<preferences version="1.1"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.mpi.nl/tools/elan/Prefs_v1.1.xsd">
+    <prefGroup key="TierColors">
+        <pref key="Audience">
+            <Object class="java.awt.Color">160,160,0</Object>
+        </pref>
+        <pref key="Guest">
+            <Object class="java.awt.Color">90,160,160</Object>
+        </pref>
+        <pref key="Veracity_description">
+            <Object class="java.awt.Color">0,160,0</Object>
+        </pref>
+        <pref key="Describer_Object">
+            <Object class="java.awt.Color">160,90,90</Object>
+        </pref>
+        <pref key="Host">
+            <Object class="java.awt.Color">0,90,160</Object>
+        </pref>
+    </prefGroup>
+</preferences>

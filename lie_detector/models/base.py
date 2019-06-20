@@ -7,6 +7,8 @@ from keras.callbacks import EarlyStopping
 from time import time
 from typing import Dict, Optional
 from sklearn.metrics import mean_squared_error
+from wandb.keras import WandbCallback
+import wandb
 
 from lie_detector.datasets.dataset_sequence import DatasetSequence
 from lie_detector.datasets.dataset import Dataset
@@ -85,13 +87,10 @@ class Model:
             early_stopping = EarlyStopping(monitor='val_loss', min_delta=0.01, patience=3, verbose=1, mode='auto')
             callbacks.append(early_stopping)
 
-        # Hide lines below until Lab 4
         if use_wandb:
-            wandb.init()
+            # wandb.init(project='fs-lie-detector', group='kfolds')
             wandb_callback = WandbCallback()
             callbacks.append(wandb_callback)
-
-        # model.network.summary()
 
         t = time()
         history = self.fit(dataset=dataset, batch_size=batch_size, epochs=epochs, callbacks=callbacks)
@@ -114,8 +113,8 @@ class Model:
         return 'binary_crossentropy'
 
     def optimizer(self):
-        if 'optimizer' in self.network_args:
-            return self.network_args['optimizer']
+        if 'learning_rate' in self.network_args:
+            return Adam(lr=self.network_args['learning_rate'])
         return Adam()
 
     def metrics(self):

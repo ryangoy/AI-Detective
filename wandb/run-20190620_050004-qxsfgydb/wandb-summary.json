@@ -1,0 +1,86 @@
+{
+    "epoch": 9,
+    "_step": 32,
+    "test_metric": 0.24550940158928478,
+    "acc": 0.7826086961704751,
+    "val_acc": 0.6140350877192983,
+    "val_loss": 0.6854933604859469,
+    "_timestamp": 1561006861.054647,
+    "graph": {
+        "format": "keras",
+        "_type": "graph",
+        "edges": [
+            [
+                "input_4",
+                "lstm_3"
+            ],
+            [
+                "lstm_3",
+                "dense_5"
+            ],
+            [
+                "dense_5",
+                "dropout_3"
+            ],
+            [
+                "dropout_3",
+                "dense_6"
+            ]
+        ],
+        "nodes": [
+            {
+                "class_name": "InputLayer",
+                "output_shape": [
+                    null,
+                    64,
+                    2048
+                ],
+                "id": "input_4",
+                "num_parameters": 0,
+                "name": "input_4"
+            },
+            {
+                "class_name": "LSTM",
+                "output_shape": [
+                    null,
+                    64
+                ],
+                "id": "lstm_3",
+                "num_parameters": 540928,
+                "name": "lstm_3"
+            },
+            {
+                "class_name": "Dense",
+                "output_shape": [
+                    null,
+                    32
+                ],
+                "id": "dense_5",
+                "num_parameters": 2080,
+                "name": "dense_5"
+            },
+            {
+                "class_name": "Dropout",
+                "output_shape": [
+                    null,
+                    32
+                ],
+                "id": "dropout_3",
+                "num_parameters": 0,
+                "name": "dropout_3"
+            },
+            {
+                "class_name": "Dense",
+                "output_shape": [
+                    null,
+                    1
+                ],
+                "id": "dense_6",
+                "num_parameters": 33,
+                "name": "dense_6"
+            }
+        ]
+    },
+    "loss": 0.47070569681084673,
+    "_runtime": 148.45958733558655
+}

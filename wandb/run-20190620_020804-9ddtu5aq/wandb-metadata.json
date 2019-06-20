@@ -1,0 +1,29 @@
+{
+    "startedAt": "2019-06-20T02:08:04.853470",
+    "exitcode": 1,
+    "heartbeatAt": "2019-06-20T02:08:06.320559",
+    "cuda": "9.0.176",
+    "gpu_count": 1,
+    "jobType": null,
+    "email": "ryangoy@gmail.com",
+    "root": "/home/ryan/cs/fs-lie-detector",
+    "username": "ryan",
+    "cpu_count": 8,
+    "git": {
+        "commit": "68d6cccfce8ea4129d4b1a5a026b807c8d6e9156",
+        "remote": "https://github.com/ryangoy/fs-lie-detector"
+    },
+    "os": "Linux-4.4.0-150-generic-x86_64-with-Ubuntu-16.04-xenial",
+    "python": "3.5.2",
+    "program": "lie_detector/training/run_experiment.py",
+    "host": "almondmilk",
+    "gpu": "TITAN X (Pascal)",
+    "mode": "run",
+    "state": "failed",
+    "args": [
+        "--save",
+        "--wandb",
+        "--experiment_config",
+        "{\"dataset\": \"TrialDataset\", \"feature_model\":\"CNNModel\", \"model\": \"BaseModel\", \"base_network\": \"LSTM\", \"head_network\": \"RESNET50\", \"train_args\": {\"batch_size\": 8}, \"network_args\": {\"frames\":64}, \"end2end\": \"False\"}"
+    ]
+}

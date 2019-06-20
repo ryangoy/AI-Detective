@@ -1,0 +1,36 @@
+wandb_version: 1
+
+base_network:
+  desc: null
+  value: LSTM
+dataset:
+  desc: null
+  value: TrialDataset
+experiment_group:
+  desc: null
+  value: Sample Experiments
+feature_model:
+  desc: null
+  value: CNNModel
+gpu_ind:
+  desc: null
+  value: 0
+head_network:
+  desc: null
+  value: RESNET50
+model:
+  desc: null
+  value: BaseModel
+network_args:
+  desc: null
+  value:
+    dense_units: 32
+    end2end: 'False'
+    frames: 64
+    learning_rate: 0.0001
+    lstm_units: 32
+train_args:
+  desc: null
+  value:
+    batch_size: 8
+    epochs: 10

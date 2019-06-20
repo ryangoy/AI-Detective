@@ -1,0 +1,86 @@
+{
+    "val_loss": 0.631460892526727,
+    "loss": 0.3430587754301403,
+    "_runtime": 125.44744348526001,
+    "_step": 17,
+    "_timestamp": 1561003729.6234393,
+    "acc": 0.8565217391304348,
+    "graph": {
+        "format": "keras",
+        "nodes": [
+            {
+                "class_name": "InputLayer",
+                "id": "input_4",
+                "name": "input_4",
+                "num_parameters": 0,
+                "output_shape": [
+                    null,
+                    64,
+                    2048
+                ]
+            },
+            {
+                "class_name": "LSTM",
+                "id": "lstm_3",
+                "name": "lstm_3",
+                "num_parameters": 540928,
+                "output_shape": [
+                    null,
+                    64
+                ]
+            },
+            {
+                "class_name": "Dense",
+                "id": "dense_5",
+                "name": "dense_5",
+                "num_parameters": 2080,
+                "output_shape": [
+                    null,
+                    32
+                ]
+            },
+            {
+                "class_name": "Dropout",
+                "id": "dropout_3",
+                "name": "dropout_3",
+                "num_parameters": 0,
+                "output_shape": [
+                    null,
+                    32
+                ]
+            },
+            {
+                "class_name": "Dense",
+                "id": "dense_6",
+                "name": "dense_6",
+                "num_parameters": 33,
+                "output_shape": [
+                    null,
+                    1
+                ]
+            }
+        ],
+        "edges": [
+            [
+                "input_4",
+                "lstm_3"
+            ],
+            [
+                "lstm_3",
+                "dense_5"
+            ],
+            [
+                "dense_5",
+                "dropout_3"
+            ],
+            [
+                "dropout_3",
+                "dense_6"
+            ]
+        ],
+        "_type": "graph"
+    },
+    "epoch": 4,
+    "val_acc": 0.6140350877192983,
+    "test_metric": 0.22498536961127075
+}

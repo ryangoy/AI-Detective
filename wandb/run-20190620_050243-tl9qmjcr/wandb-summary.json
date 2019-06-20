@@ -1,0 +1,86 @@
+{
+    "graph": {
+        "format": "keras",
+        "_type": "graph",
+        "edges": [
+            [
+                "input_4",
+                "lstm_3"
+            ],
+            [
+                "lstm_3",
+                "dense_5"
+            ],
+            [
+                "dense_5",
+                "dropout_3"
+            ],
+            [
+                "dropout_3",
+                "dense_6"
+            ]
+        ],
+        "nodes": [
+            {
+                "id": "input_4",
+                "num_parameters": 0,
+                "name": "input_4",
+                "class_name": "InputLayer",
+                "output_shape": [
+                    null,
+                    64,
+                    2048
+                ]
+            },
+            {
+                "id": "lstm_3",
+                "num_parameters": 266368,
+                "name": "lstm_3",
+                "class_name": "LSTM",
+                "output_shape": [
+                    null,
+                    32
+                ]
+            },
+            {
+                "id": "dense_5",
+                "num_parameters": 1056,
+                "name": "dense_5",
+                "class_name": "Dense",
+                "output_shape": [
+                    null,
+                    32
+                ]
+            },
+            {
+                "id": "dropout_3",
+                "num_parameters": 0,
+                "name": "dropout_3",
+                "class_name": "Dropout",
+                "output_shape": [
+                    null,
+                    32
+                ]
+            },
+            {
+                "id": "dense_6",
+                "num_parameters": 33,
+                "name": "dense_6",
+                "class_name": "Dense",
+                "output_shape": [
+                    null,
+                    1
+                ]
+            }
+        ]
+    },
+    "val_loss": 0.6719792913972286,
+    "_runtime": 154.6181390285492,
+    "epoch": 9,
+    "test_metric": 0.24011449855985287,
+    "_timestamp": 1561007021.858611,
+    "acc": 0.691304347826087,
+    "_step": 32,
+    "val_acc": 0.5789473684210527,
+    "loss": 0.5501989893291308
+}

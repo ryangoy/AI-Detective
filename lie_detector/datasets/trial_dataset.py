@@ -33,7 +33,7 @@ ANNOTATION_CSV_FILENAME = 'TrialData/Annotation/All_Gestures_Deceptive and Truth
 class TrialDataset(Dataset):
 
 
-    def __init__(self, subsample_fraction: float = None, num_folds: int = 3, frames_per_sample = 64):
+    def __init__(self, subsample_fraction: float = None, num_folds: int = 3, frames = 64):
         if not os.path.exists(str(PROCESSED_DATA_FILENAME)):
             _download_and_process_trial()
 
@@ -46,7 +46,7 @@ class TrialDataset(Dataset):
         self.trn_folds = []
         self.val_folds = []
         self.input_shape = [224, 224, 3]
-        self.frames_per_sample = frames_per_sample
+        self.frames_per_sample = frames
 
 
     def load_or_generate_data(self):

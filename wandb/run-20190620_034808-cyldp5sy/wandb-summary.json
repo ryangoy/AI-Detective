@@ -1,0 +1,86 @@
+{
+    "_step": 17,
+    "val_acc": 0.6052631578947368,
+    "acc": 0.847826087474823,
+    "loss": 0.3484252281810926,
+    "test_metric": 0.2467698787145956,
+    "_timestamp": 1561002520.7790558,
+    "graph": {
+        "edges": [
+            [
+                "input_4",
+                "lstm_3"
+            ],
+            [
+                "lstm_3",
+                "dense_5"
+            ],
+            [
+                "dense_5",
+                "dropout_3"
+            ],
+            [
+                "dropout_3",
+                "dense_6"
+            ]
+        ],
+        "nodes": [
+            {
+                "num_parameters": 0,
+                "class_name": "InputLayer",
+                "id": "input_4",
+                "output_shape": [
+                    null,
+                    64,
+                    2048
+                ],
+                "name": "input_4"
+            },
+            {
+                "num_parameters": 540928,
+                "class_name": "LSTM",
+                "id": "lstm_3",
+                "output_shape": [
+                    null,
+                    64
+                ],
+                "name": "lstm_3"
+            },
+            {
+                "num_parameters": 2080,
+                "class_name": "Dense",
+                "id": "dense_5",
+                "output_shape": [
+                    null,
+                    32
+                ],
+                "name": "dense_5"
+            },
+            {
+                "num_parameters": 0,
+                "class_name": "Dropout",
+                "id": "dropout_3",
+                "output_shape": [
+                    null,
+                    32
+                ],
+                "name": "dropout_3"
+            },
+            {
+                "num_parameters": 33,
+                "class_name": "Dense",
+                "id": "dense_6",
+                "output_shape": [
+                    null,
+                    1
+                ],
+                "name": "dense_6"
+            }
+        ],
+        "format": "keras",
+        "_type": "graph"
+    },
+    "_runtime": 127.4872214794159,
+    "epoch": 4,
+    "val_loss": 0.7029069327471549
+}

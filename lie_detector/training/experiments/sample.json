@@ -3,13 +3,38 @@
     "experiments": [
         {
             "dataset": "TrialDataset",
-            "model": "End2EndModel",
-            "network": "lstm",
+            "model": "BaseModel",
+            "feature_model": "CNNModel",
+            "base_network": "LSTM",
+            "head_network": "RESNET50",
             "network_args": {
-                "num_layers": 2
+                "lstm_units": 64,
+                "dense_units": 32,
+                "frames": 64, 
+                "end2end": "False",
+                "learning_rate": 0.0001
             },
             "train_args": {
-                "batch_size": 8
+                "batch_size": 8,
+                "epochs": 10
+            }
+        },
+        {
+            "dataset": "TrialDataset",
+            "model": "BaseModel",
+            "feature_model": "CNNModel",
+            "base_network": "LSTM",
+            "head_network": "RESNET50",
+            "network_args": {
+                "lstm_units": 32,
+                "dense_units": 32,
+                "frames": 64, 
+                "end2end": "False",
+                "learning_rate": 0.0001
+            },
+            "train_args": {
+                "batch_size": 8,
+                "epochs": 10
             }
         }
     ]
