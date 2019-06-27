@@ -15,7 +15,13 @@
     "react-dom": "^16.8.6",
     "react-scripts": "^3.0.1",
     "react-toastify": "^5.2.0",
-    "reactstrap": "^8.0.0"
+    "reactstrap": "^8.0.0",
+    "serverless": "^1.45.1",
+    "serverless-python-requirements": "^4.3.0",
+    "serverless-wsgi": "^1.7.2"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "serverless-plugin-diff": "^1.3.0",
+    "serverless-plugin-optimize": "^4.1.0-rc.1"
+  }
 }

@@ -7,6 +7,7 @@ from flask_socketio import SocketIO, emit
 import os
 import sys
 sys.path.insert(0, './')
+sys.path.insert(0, '../')
 from lie_detector.predict import predict_example
 import time
 # from tensorflow.keras import backend
@@ -30,14 +31,14 @@ app.config['UPLOAD_FOLDER'] = 'uploads'
 def index():
     return 'Flask server up and running!'
 
-@app.route('/dev/face_percent', methods=['POST'])
+@app.route('/predict', methods=['POST'])
 def face_percent():
     socketio.emit('stage', 'video upload protocol')
     time.sleep(2)
     vpath = _load_video()
 
     
-    percent = predict_example(vpath, '/home/ryan/cs/fs-lie-detector/lie_detector/training/experiments/base_LSTM.json', socketio)
+    percent = predict_example(vpath, './lie_detector/training/experiments/base_LSTM.json', socketio)
     
     return jsonify({'percent': float(percent)})
 
@@ -64,7 +65,7 @@ def _load_video():
 
 
 def main():
-    socketio.run(app, debug=False)  # nosec
+    socketio.run(app, debug=False, host='0.0.0.0', port=8000)  # nosec
 
 
 if __name__ == '__main__':

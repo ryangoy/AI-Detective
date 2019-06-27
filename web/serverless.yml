@@ -6,18 +6,26 @@ package:
   exclude:
     - "**/*"
   include:
-    - ../lie_detector/**/*
-    - server/server.py
+    - ../lie_detector/models/**
+    - ../lie_detector/networks/**
+    - ../lie_detector/datasets/dataset.py
+    - ../lie_detector/dataset_sequence.py
+    - ../lie_detector/__init__.py
+    - ../lie_detector/trial_dataset.py
+    - ../lie_detector/predict.py
+    - ../lie_detector/util.py
+    - ../lie_detector/video_face_detector.py
+    - server/app.py
 provider:
   name: aws
-  region: us-west-2
+  region: us-west-1
   runtime: python3.6
-  memorysize: 2048
+  memorysize: 3072
   timeout: 60
   versionFunctions: false
 
 functions:
-  api:
+  app:
     handler: wsgi_handler.handler
     events:
       - http: ANY /
@@ -26,10 +34,11 @@ functions:
 plugins:
   - serverless-python-requirements
   - serverless-wsgi
-
+  - serverless-plugin-optimize
+  
 custom:
   wsgi:
-    app: app.app
+    app: server.app.app
     packRequirements: false
   pythonRequirements:
     dockerizePip: true

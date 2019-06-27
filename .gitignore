@@ -5,9 +5,12 @@
 *.jpg
 *.jpeg
 *.png
-
+*.eaf
 *.h5
 *.zip
 *.npy
 
+.ipynb_checkpoints/
+.serverless/
 cache/
+node_modules/

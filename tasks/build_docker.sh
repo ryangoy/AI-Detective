@@ -7,4 +7,4 @@ pipenv lock --requirements --keep-outdated > web/requirements.txt
 sed -i 's/-gpu//g' web/requirements.txt
 
 # Call docker
-docker build -t text_recognizer_api -f api/Dockerfile .
+docker build -t lie_detector_api -f web/Dockerfile .

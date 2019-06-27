@@ -9,7 +9,7 @@ import Pipeline from "./components/Pipeline"
 
 import openSocket from 'socket.io-client'
 
-const socket = openSocket('http://localhost:5000');
+const socket = openSocket('http://0.0.0.0:8000');
 
 class App extends Component {
 
@@ -70,7 +70,7 @@ class App extends Component {
       const data = new FormData() 
       data.append('file', this.state.selectedFile)
 
-      axios.post("http://localhost:5000/dev/face_percent", data, {
+      axios.post("http://0.0.0.0:8000/dev/face_percent", data, {
         
         onUploadProgress: ProgressEvent => {
           this.setState({
