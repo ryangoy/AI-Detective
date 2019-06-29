@@ -29,8 +29,14 @@ PROCESSED_LABELS_FILENAME = PROCESSED_DATA_DIRNAME / 'y.npy'
 
 ANNOTATION_CSV_FILENAME = 'TrialData/Annotation/All_Gestures_Deceptive and Truthful.csv'
 
+INPUT_SHAPE = [224, 224, 3]
+
 
 class TrialDataset(Dataset):
+
+    @staticmethod
+    def get_input_shape():
+        return INPUT_SHAPE
 
 
     def __init__(self, subsample_fraction: float = None, num_folds: int = 3, frames = 64):
@@ -45,7 +51,7 @@ class TrialDataset(Dataset):
         self.num_folds = num_folds 
         self.trn_folds = []
         self.val_folds = []
-        self.input_shape = [224, 224, 3]
+        self.input_shape = INPUT_SHAPE
         self.frames_per_sample = frames
 
 

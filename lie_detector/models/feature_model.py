@@ -1,8 +1,8 @@
-from keras import backend as K
+from tensorflow.keras import backend as K
 import numpy as np
 from typing import Callable, Dict, Tuple
 
-from lie_detector.models.base import Model
+from lie_detector.models.model import Model
 from lie_detector.datasets.trial_dataset import TrialDataset
 from lie_detector.datasets.dataset_sequence import DatasetSequence
 from lie_detector.networks.feature_network import RESNET50
@@ -15,7 +15,7 @@ class CNNModel(Model):
                  dataset_args: Dict = None,
                  network_args: Dict = None):
         """Define the default dataset and network values for this model."""
-        super().__init__(dataset_cls, network_fn, dataset_args, network_args)
+        super().__init__(network_fn=network_fn, network_args=network_args, input_shape=dataset_cls.get_input_shape())
 
 
     def generate_features(self, X, y=None, batch_size=32):

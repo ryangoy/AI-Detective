@@ -3,7 +3,7 @@ from pathlib import Path
 import argparse
 import os
 
-from lie_detector import util
+from lie_detector import utils
 
 
 class Dataset:
@@ -20,7 +20,7 @@ def _download_raw_dataset(metadata):
     if os.path.exists(metadata['filename']):
         return
     print('Downloading raw dataset...')
-    util.download_url(metadata['url'], metadata['filename'])
+    utils.download_url(metadata['url'], metadata['filename'])
     # print('Computing SHA-256...')
     # sha256 = util.compute_sha256(metadata['filename'])
     # if sha256 != metadata['sha256']:

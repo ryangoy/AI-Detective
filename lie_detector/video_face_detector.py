@@ -2,15 +2,22 @@ import cv2
 import numpy as np
 import os
 from pathlib import Path
+from lie_detector.utils import download_from_s3
 
-haarcascade_path = os.path.join(str(Path(__file__).resolve().parents[0]), 'weights', 'cache', 'haarcascade_frontalface_default.xml')
+
+WEIGHTS_DIRNAME = '/tmp'
+HAARCASCADE_FNAME = 'haarcascade_frontalface_default.xml'
+HAARCASCADE_PATH = os.path.join(WEIGHTS_DIRNAME, HAARCASCADE_FNAME)
 
 def generate_cropped_face_video(vpath, fps=10):
 
     if vpath is None:
         return 0.0
 
-    face_cascade = cv2.CascadeClassifier(haarcascade_path)
+    if not os.path.exists(HAARCASCADE_PATH):
+        download_from_s3(HAARCASCADE_FNAME)
+
+    face_cascade = cv2.CascadeClassifier(HAARCASCADE_PATH)
     cap = cv2.VideoCapture(vpath)
     inp_fps = cap.get(cv2.CAP_PROP_FPS)
     inp_frame_time = 1000.0/inp_fps

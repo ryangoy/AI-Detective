@@ -18,6 +18,7 @@ package:
     - server/app.py
 provider:
   name: aws
+  stage: dev1
   region: us-west-1
   runtime: python3.6
   memorysize: 3072
@@ -25,7 +26,7 @@ provider:
   versionFunctions: false
 
 functions:
-  app:
+  api:
     handler: wsgi_handler.handler
     events:
       - http: ANY /

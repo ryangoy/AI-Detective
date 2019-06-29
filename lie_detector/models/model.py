@@ -1,41 +1,42 @@
 """Model class, to be extended by specific types of models."""
 from pathlib import Path
 from typing import Callable, Dict, Optional
-from keras.optimizers import RMSprop, Adam
+from tensorflow.keras.optimizers import RMSprop, Adam
 import numpy as np
-from keras.callbacks import EarlyStopping
+from tensorflow.keras.callbacks import EarlyStopping
 from time import time
 from typing import Dict, Optional
 from sklearn.metrics import mean_squared_error
 from wandb.keras import WandbCallback
 import wandb
+import os
 
 from lie_detector.datasets.dataset_sequence import DatasetSequence
 from lie_detector.datasets.dataset import Dataset
+from lie_detector.utils import download_from_s3
 
-WEIGHTS_DIRNAME = Path(__file__).parents[1].resolve() / 'weights' / 'cache'
-
+# WEIGHTS_DIRNAME = Path(__file__).parents[1].resolve() / 'weights' / 'cache'
+WEIGHTS_DIRNAME = '/tmp'
 
 class Model:
     """Base class, to be subclassed by predictors for specific type of data."""
-    def __init__(self, dataset_cls: type, network_fn: Callable, dataset_args: Dict = None, network_args: Dict = None, input_shape=None):
-        self.name = '{}_{}_{}'.format(self.__class__.__name__, dataset_cls.__name__ , network_fn.__name__)
-
-        if dataset_args is None:
-            self.dataset_args = {}
-        else:
-            self.dataset_args = dataset_args
+    def __init__(self, network_fn: Callable, network_args: Dict = None, input_shape=None):
+        self.name = '{}_{}'.format(self.__class__.__name__, network_fn.__name__)
         
         if network_args is None:
             self.network_args = {}
         else:
             self.network_args = network_args
 
+        if not os.path.exists(self.weights_filename):
+            download_from_s3(self.name + '_weights.h5')
+
         if input_shape is not None:
-            self.network = network_fn(input_shape=input_shape, **self.network_args)
+            self.network = network_fn(input_shape=input_shape, weights=self.weights_filename, **self.network_args)
         else:
-            self.data = dataset_cls(**self.dataset_args)
-            self.network = network_fn(input_shape=self.data.input_shape, **self.network_args)
+            self.network = network_fn(input_shape=input_shape, weights=self.weights_filename, **self.network_args)
+
+        self.load_weights()
 
         self.batch_augment_fn = None
         self.batch_format_fn = None
@@ -43,8 +44,8 @@ class Model:
 
     @property
     def weights_filename(self) -> str:
-        WEIGHTS_DIRNAME.mkdir(parents=True, exist_ok=True)
-        return str(WEIGHTS_DIRNAME / '{}_weights.h5'.format(self.name))
+        # WEIGHTS_DIRNAME.mkdir(parents=True, exist_ok=True)
+        return os.path.join(WEIGHTS_DIRNAME, self.name + '_weights.h5')
 
 
     def fit(self, dataset, batch_size: int = 32, epochs: int = 10, augment_val: bool = True, callbacks: list = None):
@@ -125,5 +126,8 @@ class Model:
     def load_weights(self):
         self.network.load_weights(self.weights_filename)
 
+
     def save_weights(self):
         self.network.save_weights(self.weights_filename) 
+
+

@@ -3,7 +3,7 @@
 import argparse
 import importlib
 import json
-import keras.backend as K
+import tensorflow.keras.backend as K
 import numpy as np
 import os
 import sys
@@ -15,7 +15,7 @@ from wandb.keras import WandbCallback
 
 sys.path.insert(0, './')
 from lie_detector.datasets.dataset import Dataset
-from lie_detector.models.base import Model
+from lie_detector.models.model import Model
 
 K.set_image_dim_ordering('tf')
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2' 
@@ -80,7 +80,7 @@ def run_experiment(experiment_config: Dict, save_weights: bool, gpu_ind: int, us
     if experiment_config['network_args']['end2end'] == "False":
         print('Initializing feature model...')
         feature_model_class_ = getattr(models_module, experiment_config['feature_model'])
-        feature_model = feature_model_class_(network_fn=head_network_fn_)
+        feature_model = feature_model_class_(network_fn=head_network_fn_, )
         dataset.preprocess(feature_model.generate_features)
 
     for k in range(dataset.num_folds):
@@ -89,9 +89,7 @@ def run_experiment(experiment_config: Dict, save_weights: bool, gpu_ind: int, us
 
         print('Initializing model...')
         model = model_class_(
-            dataset_cls=dataset_class_,
             network_fn=base_network_fn_,
-            dataset_args=dataset_args,
             network_args=network_args,
             input_shape=dataset.input_shape
         )

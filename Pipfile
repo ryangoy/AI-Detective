@@ -4,25 +4,24 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
-wandb = "*"
 youtube-dl = "*"
 pympi-ling = "*"
 ipython = "*"
 jupyter = "*"
 lightgbm = "*"
+sklearn = "*"
+pandas = "*"
 
 [packages]
 numpy = "*"
+tensorflow-gpu = ">=1.11,<1.12"
 flask = "*"
 flask-cors = "*"
-opencv-python = "*"
-tensorflow-gpu = "==1.12.0"
-keras = "*"
+opencv-python-headless = "*"
 toml = "*"
 tqdm = "*"
-pandas = "*"
-sklearn = "*"
 flask-socketio = "*"
+boto3 = "*"
 
 
 [requires]

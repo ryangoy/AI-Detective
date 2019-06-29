@@ -9,6 +9,15 @@ import os
 import numpy as np
 import cv2
 from tqdm import tqdm
+import boto3
+
+def download_from_s3(fname):
+    print('Downloading {} from s3...'.format(fname))
+    bucket = 'cydm-weights'
+
+    save_path = os.path.join('/tmp', fname)
+    s3_client = boto3.client('s3')
+    s3_client.download_file(bucket, fname, save_path)
 
 
 def read_image(image_uri: Union[Path, str], grayscale=False) -> np.array:
@@ -80,7 +89,6 @@ def download_url(url, filename):
         urlretrieve(url, filename, reporthook=t.update_to, data=None)  # nosec
 
 
-# Hide lines below until Lab 7
 def download_urls(urls, filenames):
     with ThreadPoolExecutor() as executor:
         futures = [executor.submit(urlretrieve, url, filename) for url, filename in zip(urls, filenames)]
@@ -89,4 +97,3 @@ def download_urls(urls, filenames):
                 future.result()
             except Exception as e:
                 print('Error', e)
-# Hide lines above until Lab 7

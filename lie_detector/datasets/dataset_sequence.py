@@ -1,6 +1,6 @@
 """DatasetSequence class."""
 import numpy as np
-from keras.utils import Sequence
+from tensorflow.keras.utils import Sequence
 
 
 class DatasetSequence(Sequence):

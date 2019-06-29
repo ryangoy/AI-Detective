@@ -4,7 +4,6 @@ import os
 import numpy as np
 import sys
 sys.path.insert(0, './')
-import tensorflow as tf
 from lie_detector.video_face_detector import generate_cropped_face_video
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2' 
 import time
@@ -50,8 +49,7 @@ def predict_example(vpath, experiment_config_path, socketio=None):
         socketio.emit('stage', 'video feature generation')
     X, _ = feature_model.generate_features(X)
 
-    model = model_class_(dataset_cls=dataset_class_, network_fn=base_network_fn_, network_args=network_args, input_shape=[X.shape[-1]])
-    model.load_weights()
+    model = model_class_(network_fn=base_network_fn_, network_args=network_args, input_shape=[X.shape[-1]])
 
     if socketio:
         socketio.emit('stage', 'prediction')

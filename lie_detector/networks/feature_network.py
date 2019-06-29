@@ -8,18 +8,18 @@
 '''
 
 
-from keras.layers import Flatten, Dense, Input, GlobalAveragePooling2D, \
+from tensorflow.keras.layers import Flatten, Dense, Input, GlobalAveragePooling2D, \
     GlobalMaxPooling2D, Activation, Conv2D, MaxPooling2D, BatchNormalization, \
     AveragePooling2D, Reshape, Permute, multiply
-from keras_applications.imagenet_utils import _obtain_input_shape
-from keras.utils import layer_utils
-from keras.utils.data_utils import get_file
-from keras import backend as K
+from tensorflow.keras_applications.imagenet_utils import _obtain_input_shape
+from tensorflow.keras.utils import layer_utils
+from tensorflow.keras.utils.data_utils import get_file
+from tensorflow.keras import backend as K
 from lie_detector.weights import get_weights as utils
-from keras.engine.topology import get_source_inputs
+from tensorflow.keras.engine.topology import get_source_inputs
 import warnings
-from keras.models import Model
-from keras import layers
+from tensorflow.keras.models import Model
+from tensorflow.keras import layers
 
 
 
@@ -88,7 +88,7 @@ def resnet_conv_block(input_tensor, kernel_size, filters, stage, block,
     x = Activation('relu')(x)
     return x
 
-def RESNET50(weights='vggface',
+def RESNET50(weights=None,
              input_shape=None,
              pooling=None,
              trainable=False):
@@ -142,34 +142,37 @@ def RESNET50(weights='vggface',
     # Create model.
     model = Model(inputs, x, name='vggface_resnet50')
 
-    # load weights
-    if weights == 'vggface':
-        weights_path = get_file('resnet50_weights_no_top.h5', utils.RESNET50_WEIGHTS_NO_TOP_URL,
-                                cache_subdir=utils.CACHE_PATH)
-        model.load_weights(weights_path)
-        model.load_weights(weights_path)
-        if K.backend() == 'theano':
-            layer_utils.convert_all_kernels_in_model(model)
-            if include_top:
-                maxpool = model.get_layer(name='avg_pool')
-                shape = maxpool.output_shape[1:]
-                dense = model.get_layer(name='classifier')
-                layer_utils.convert_dense_weights_data_format(dense, shape,
-                                                              'channels_first')
+    # # load weights
+    # if weights == 'vggface':
+    #     weights_path = get_file('resnet50_weights_no_top.h5', utils.RESNET50_WEIGHTS_NO_TOP_URL,
+    #                             cache_subdir=utils.CACHE_PATH)
 
-        if K.image_data_format() == 'channels_first' and K.backend() == 'tensorflow':
-            warnings.warn('You are using the TensorFlow backend, yet you '
-                          'are using the Theano '
-                          'image data format convention '
-                          '(`image_data_format="channels_first"`). '
-                          'For best performance, set '
-                          '`image_data_format="channels_last"` in '
-                          'your Keras config '
-                          'at ~/.keras/keras.json.')
-    elif weights is not None:
-        model.load_weights(weights)
+    #     model.load_weights(weights_path)
+
+    #     if K.backend() == 'theano':
+    #         layer_utils.convert_all_kernels_in_model(model)
+    #         if include_top:
+    #             maxpool = model.get_layer(name='avg_pool')
+    #             shape = maxpool.output_shape[1:]
+    #             dense = model.get_layer(name='classifier')
+    #             layer_utils.convert_dense_weights_data_format(dense, shape,
+    #                                                           'channels_first')
+
+    #     if K.image_data_format() == 'channels_first' and K.backend() == 'tensorflow':
+    #         warnings.warn('You are using the TensorFlow backend, yet you '
+    #                       'are using the Theano '
+    #                       'image data format convention '
+    #                       '(`image_data_format="channels_first"`). '
+    #                       'For best performance, set '
+    #                       '`image_data_format="channels_last"` in '
+    #                       'your Keras config '
+    #                       'at ~/.keras/keras.json.')
+    # elif weights is not None:
+    #     model.load_weights(weights)
 
     return model
+
+
 
 
 def senet_se_block(input_tensor, stage, block, compress_rate=16, bias=False):
