@@ -2,12 +2,21 @@ import cv2
 import numpy as np
 import os
 from pathlib import Path
-from lie_detector.utils import download_from_s3
+import boto3
+# to do: figure out why lambda cant find utils... and import download_from_S3
 
 
 WEIGHTS_DIRNAME = '/tmp'
 HAARCASCADE_FNAME = 'haarcascade_frontalface_default.xml'
 HAARCASCADE_PATH = os.path.join(WEIGHTS_DIRNAME, HAARCASCADE_FNAME)
+
+def download_from_s3(fname):
+    print('Downloading {} from s3...'.format(fname))
+    bucket = 'cydm-weights'
+
+    save_path = os.path.join('/tmp', fname)
+    s3_client = boto3.client('s3')
+    s3_client.download_file(bucket, fname, save_path)
 
 def generate_cropped_face_video(vpath, fps=10):
 
@@ -19,6 +28,8 @@ def generate_cropped_face_video(vpath, fps=10):
 
     face_cascade = cv2.CascadeClassifier(HAARCASCADE_PATH)
     cap = cv2.VideoCapture(vpath)
+    if not cap.isOpened():
+        return None
     inp_fps = cap.get(cv2.CAP_PROP_FPS)
     inp_frame_time = 1000.0/inp_fps
     frame_time = 1000.0/fps

@@ -6,17 +6,28 @@ import numpy as np
 from tensorflow.keras.callbacks import EarlyStopping
 from time import time
 from typing import Dict, Optional
-from sklearn.metrics import mean_squared_error
-from wandb.keras import WandbCallback
-import wandb
+# from sklearn.metrics import mean_squared_error
+try:
+    from wandb.keras import WandbCallback
+    import wandb
+except:
+    pass
 import os
 
 from lie_detector.datasets.dataset_sequence import DatasetSequence
 from lie_detector.datasets.dataset import Dataset
-from lie_detector.utils import download_from_s3
+# from lie_detector.utils import download_from_s3
 
 # WEIGHTS_DIRNAME = Path(__file__).parents[1].resolve() / 'weights' / 'cache'
 WEIGHTS_DIRNAME = '/tmp'
+
+def download_from_s3(fname):
+    print('Downloading {} from s3...'.format(fname))
+    bucket = 'cydm-weights'
+
+    save_path = os.path.join('/tmp', fname)
+    s3_client = boto3.client('s3')
+    s3_client.download_file(bucket, fname, save_path)
 
 class Model:
     """Base class, to be subclassed by predictors for specific type of data."""
@@ -36,7 +47,10 @@ class Model:
         else:
             self.network = network_fn(input_shape=input_shape, weights=self.weights_filename, **self.network_args)
 
+        self.network.compile(loss=self.loss(), optimizer=self.optimizer(), metrics=self.metrics())
+
         self.load_weights()
+        # self.network.compile(loss=self.loss(), optimizer=self.optimizer(), metrics=self.metrics())
 
         self.batch_augment_fn = None
         self.batch_format_fn = None
@@ -52,7 +66,7 @@ class Model:
         if callbacks is None:
             callbacks = []
 
-        self.network.compile(loss=self.loss(), optimizer=self.optimizer(), metrics=self.metrics())
+        # self.network.compile(loss=self.loss(), optimizer=self.optimizer(), metrics=self.metrics())
 
         train_sequence = DatasetSequence(
             dataset.X_trn,
@@ -106,7 +120,7 @@ class Model:
         y = np.array(y).reshape((length,))
         preds = np.array(preds).reshape((length,))
 
-        return mean_squared_error(preds, y)
+        return np.square(preds - y).mean()
 
     def loss(self):
         if 'loss' in self.network_args:

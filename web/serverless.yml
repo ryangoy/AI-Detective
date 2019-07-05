@@ -8,13 +8,15 @@ package:
   include:
     - ../lie_detector/models/**
     - ../lie_detector/networks/**
+    - ../lie_detector/datasets/__init__.py
     - ../lie_detector/datasets/dataset.py
-    - ../lie_detector/dataset_sequence.py
+    - ../lie_detector/datasets/trial_dataset.py
+    - ../lie_detector/datasets/dataset_sequence.py
     - ../lie_detector/__init__.py
-    - ../lie_detector/trial_dataset.py
     - ../lie_detector/predict.py
     - ../lie_detector/util.py
     - ../lie_detector/video_face_detector.py
+    - ../__init__.py
     - server/app.py
 provider:
   name: aws
@@ -36,14 +38,18 @@ plugins:
   - serverless-python-requirements
   - serverless-wsgi
   - serverless-plugin-optimize
+  - serverless-offline
   
 custom:
+  serverless-offline:
+    httpsProtocol: "dev-certs"
+    port: 4000
   wsgi:
     app: server.app.app
     packRequirements: false
   pythonRequirements:
     dockerizePip: true
-    slim: true
+    slim: false
     slimPatterns:
       - "**/*.egg-info*"
       - "**/doc"

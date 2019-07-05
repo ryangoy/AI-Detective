@@ -11,15 +11,30 @@ import time
 # to do: automatically import correct models
 # to do: rename head_network feature_network, rename model_class to base_model_class
 
-def predict_example(vpath, experiment_config_path, socketio=None):
-    with open(experiment_config_path) as f:
+def predict_example(vpath, experiment_config_path=None, socketio=None):
 
-        experiment_config = json.load(f)
+    if experiment_config_path is not None:
+        with open(experiment_config_path) as f:
+
+            experiment_config = json.load(f)
+    else:
+        experiment_config = {
+            "dataset": "TrialDataset", 
+            "feature_model":"CNNModel", 
+            "model": "BaseModel", 
+            "base_network": "LSTM", 
+            "head_network": "RESNET50", 
+            "train_args": {
+                "batch_size": 8, 
+                "end2end": "False"
+            },
+            "network_args": {
+                "frames": 64
+            }
+        }
 
     if socketio:
         socketio.emit('stage', 'initialization')
-        time.sleep(2)
-        print('done sleepin')
     datasets_module = importlib.import_module('lie_detector.datasets')
     dataset_class_ = getattr(datasets_module, experiment_config['dataset'])
 
@@ -40,6 +55,10 @@ def predict_example(vpath, experiment_config_path, socketio=None):
     if socketio:
         socketio.emit('stage', 'face detection')
     face_cropped = generate_cropped_face_video(vpath)
+
+    if face_cropped is None:
+        return -1
+
     X = fix_data_length(face_cropped)
     
     

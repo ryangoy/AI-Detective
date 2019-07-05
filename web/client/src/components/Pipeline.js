@@ -6,23 +6,23 @@ import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 export default class Pipeline extends React.Component {
     
 
-    getListOfItems() {
-        var items = []
-        for (var i=0; i<this.props.completed_stages.length; i++) {
-                items.push(<StageSummary stage={this.props.completed_stages[i]} id={i} />)
-            }
-        return items
-    }
+    // getListOfItems() {
+    //     var items = []
+    //     for (var i=0; i<this.props.completed_stages.length; i++) {
+    //             items.push(<StageSummary stage={this.props.completed_stages[i]} id={i} />)
+    //         }
+    //     return items
+    // }
     
-    renderItems() {
-        return (
-            <div>
-                <ReactCSSTransitionGroup transitionName="example">
-                    {this.getListOfItems()}
-                </ReactCSSTransitionGroup>
-            </div>
-        )
-    }
+    // renderItems() {
+    //     return (
+    //         <div>
+    //             <ReactCSSTransitionGroup transitionName="example">
+    //                 {this.getListOfItems()}
+    //             </ReactCSSTransitionGroup>
+    //         </div>
+    //     )
+    // }
 
     renderSpinner(){
         return (
@@ -48,8 +48,6 @@ export default class Pipeline extends React.Component {
             return <h3 className="form-group col-md-5 center-div mt-3">Upload a file to get started!</h3>
         } else{
             return (<div>
-            
-                      {this.renderItems()}
                       {this.renderSpinner()}
                       {this.renderResult()}
 
@@ -57,6 +55,7 @@ export default class Pipeline extends React.Component {
         }
     }
 }
+// {this.renderItems()}
 // this.props.completed_stages.map((stage) => {
 //                         return (<StageSummary stage={stage} />)
 //                     })

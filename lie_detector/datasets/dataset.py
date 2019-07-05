@@ -3,8 +3,11 @@ from pathlib import Path
 import argparse
 import os
 
-from lie_detector import utils
 
+def download_url(url, filename):
+    """Download a file from url to filename, with a progress bar."""
+    with TqdmUpTo(unit='B', unit_scale=True, unit_divisor=1024, miniters=1) as t:
+        urlretrieve(url, filename, reporthook=t.update_to, data=None)
 
 class Dataset:
     """Simple abstract class for datasets."""
@@ -20,7 +23,7 @@ def _download_raw_dataset(metadata):
     if os.path.exists(metadata['filename']):
         return
     print('Downloading raw dataset...')
-    utils.download_url(metadata['url'], metadata['filename'])
+    download_url(metadata['url'], metadata['filename'])
     # print('Computing SHA-256...')
     # sha256 = util.compute_sha256(metadata['filename'])
     # if sha256 != metadata['sha256']:

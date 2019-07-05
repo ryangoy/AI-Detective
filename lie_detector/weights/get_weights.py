@@ -3,7 +3,8 @@
 
 import os
 
-CACHE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'cache')
+# CACHE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'cache')
+CACHE_PATH = '/tmp/'
 DOWNLOAD_URL = 'https://github.com/ryangoy/fs-lie-detector/releases/download/dev'
 CASCADE_WEIGHTS_URL = os.path.join(DOWNLOAD_URL, 'haarcascade_frontalface_default.xml')
 CASCADE_WEIGHTS_PATH = os.path.join(CACHE_PATH, 'haarcascade_frontalface_default.xml')

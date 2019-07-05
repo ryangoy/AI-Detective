@@ -10,7 +10,7 @@ export default class Spinner extends React.Component {
         } else{
             return (<div>
                       <img className="row" src={process.env.PUBLIC_URL + "spinner.gif"}  alt="Spinner gif"/>
-                      <p>Running <b>{this.props.stage}</b>...</p>
+                      <p>The AI detective is inspecting your video...</p>
                       </div>
 )
         }

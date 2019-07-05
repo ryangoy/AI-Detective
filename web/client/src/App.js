@@ -7,9 +7,12 @@ import 'react-toastify/dist/ReactToastify.css';
 import './App.css'
 import Pipeline from "./components/Pipeline"
 
-import openSocket from 'socket.io-client'
 
-const socket = openSocket('http://0.0.0.0:8000');
+// import openSocket from 'socket.io-client'
+
+const endpoint = 'https://nwmh21ywva.execute-api.us-west-1.amazonaws.com/dev1'
+
+// const socket = openSocket('http://0.0.0.0:8000');
 
 class App extends Component {
 
@@ -23,29 +26,30 @@ class App extends Component {
       show_file_upload_progress: false,
       show_spinner: false,
       show_result: false,
-      stage: 'none',
-      completed_stages: []
+      test: 'not set',
+      // stage: 'none',
+      // completed_stages: []
     }
-    this.subscribeToPipelineUpdates();
+    // this.subscribeToPipelineUpdates();
   }
 
 
-  subscribeToPipelineUpdates = () => {
-    socket.on('stage', (s) => {
+  // subscribeToPipelineUpdates = () => {
+  //   socket.on('stage', (s) => {
         
 
-        if (this.state.stage !== 'none') {
-            this.setState({completed_stages:this.state.completed_stages.concat([this.state.stage])})
-        } else {
-            this.setState({show_spinner:true})
-        }
-        this.setState({stage:s})
-        if (s === 'completed') {
-            this.setState({show_result:true})
-        }
+  //       if (this.state.stage !== 'none') {
+  //           this.setState({completed_stages:this.state.completed_stages.concat([this.state.stage])})
+  //       } else {
+  //           this.setState({show_spinner:true})
+  //       }
+  //       this.setState({stage:s})
+  //       if (s === 'completed') {
+  //           this.setState({show_result:true})
+  //       }
 
-    });
-  } 
+  //   });
+  // } 
 
   // when a file is selected
   onChangeHandler = (event) =>{
@@ -55,22 +59,30 @@ class App extends Component {
         fileField: event.target.files[0].name
       })
     }
+    return true
+  }
+
+  testHandler = () => {
+    axios.get(endpoint+"/test").then(res=> {this.setState({test: res.data})})
+    return true
   }
 
   // when we press the upload button
   onClickHandler = () => {
+
     if (this.state.selectedFile == null) {
       console.log('File is null')
     }
     else {
       this.setState({show_file_upload_progress: true,
                      show_spinner: true,
-                     stage: 'none',
-                     completed_stages: []})
+                     // stage: 'none',
+                     // completed_stages: []
+                    })
       const data = new FormData() 
       data.append('file', this.state.selectedFile)
 
-      axios.post("http://0.0.0.0:8000/dev/face_percent", data, {
+      axios.post(endpoint + "/predict", data, {
         
         onUploadProgress: ProgressEvent => {
           this.setState({
@@ -82,7 +94,9 @@ class App extends Component {
         const percent = res.data['percent']*100;
         return percent
       }).then(percent => {
-        this.setState({percent, show_spinner:false});
+        this.setState({percent, show_spinner:false, show_result:true});
+      }).catch(error => {
+        console.log(error.response)
       })
 
     }
@@ -135,8 +149,9 @@ class App extends Component {
           <div></div>
         }
         <div>
-        <Pipeline stage={this.state.stage} 
-                  completed_stages={this.state.completed_stages}
+        <Pipeline 
+                  // stage={this.state.stage} 
+                  // completed_stages={this.state.completed_stages}
                   show_spinner={this.state.show_spinner}
                   show_result={this.state.show_result}
                   percent={this.state.percent}/>

@@ -11,6 +11,7 @@ jupyter = "*"
 lightgbm = "*"
 sklearn = "*"
 pandas = "*"
+aws-sam-cli = "*"
 
 [packages]
 numpy = "*"
@@ -22,7 +23,6 @@ toml = "*"
 tqdm = "*"
 flask-socketio = "*"
 boto3 = "*"
-
 
 [requires]
 python_version = "3.6"

@@ -11,12 +11,9 @@
 from tensorflow.keras.layers import Flatten, Dense, Input, GlobalAveragePooling2D, \
     GlobalMaxPooling2D, Activation, Conv2D, MaxPooling2D, BatchNormalization, \
     AveragePooling2D, Reshape, Permute, multiply
-from tensorflow.keras_applications.imagenet_utils import _obtain_input_shape
-from tensorflow.keras.utils import layer_utils
-from tensorflow.keras.utils.data_utils import get_file
+
 from tensorflow.keras import backend as K
-from lie_detector.weights import get_weights as utils
-from tensorflow.keras.engine.topology import get_source_inputs
+# from lie_detector.weights import get_weights as utils
 import warnings
 from tensorflow.keras.models import Model
 from tensorflow.keras import layers
@@ -311,29 +308,29 @@ def SENET50(weights='vggface', input_shape=None, pooling=None, trainable=False):
     model = Model(inputs, x, name='vggface_senet50')
 
     # load weights
-    if weights == 'vggface':
+    # if weights == 'vggface':
 
-        weights_path = get_file('senet50_weights_no_top.h5', utils.SENET50_WEIGHTS_NO_TOP_URL,
-                                cache_subdir=utils.CACHE_PATH)
-        model.load_weights(weights_path)
-        if K.backend() == 'theano':
-            layer_utils.convert_all_kernels_in_model(model)
-            if include_top:
-                maxpool = model.get_layer(name='avg_pool')
-                shape = maxpool.output_shape[1:]
-                dense = model.get_layer(name='classifier')
-                layer_utils.convert_dense_weights_data_format(dense, shape, 'channels_first')
+    #     weights_path = get_file('senet50_weights_no_top.h5', utils.SENET50_WEIGHTS_NO_TOP_URL,
+    #                             cache_subdir=utils.CACHE_PATH)
+    #     model.load_weights(weights_path)
+    #     if K.backend() == 'theano':
+    #         layer_utils.convert_all_kernels_in_model(model)
+    #         if include_top:
+    #             maxpool = model.get_layer(name='avg_pool')
+    #             shape = maxpool.output_shape[1:]
+    #             dense = model.get_layer(name='classifier')
+    #             layer_utils.convert_dense_weights_data_format(dense, shape, 'channels_first')
 
-        if K.image_data_format() == 'channels_first' and K.backend() == 'tensorflow':
-            warnings.warn('You are using the TensorFlow backend, yet you '
-                          'are using the Theano '
-                          'image data format convention '
-                          '(`image_data_format="channels_first"`). '
-                          'For best performance, set '
-                          '`image_data_format="channels_last"` in '
-                          'your Keras config '
-                          'at ~/.keras/keras.json.')
-    elif weights is not None:
+    #     if K.image_data_format() == 'channels_first' and K.backend() == 'tensorflow':
+    #         warnings.warn('You are using the TensorFlow backend, yet you '
+    #                       'are using the Theano '
+    #                       'image data format convention '
+    #                       '(`image_data_format="channels_first"`). '
+    #                       'For best performance, set '
+    #                       '`image_data_format="channels_last"` in '
+    #                       'your Keras config '
+    #                       'at ~/.keras/keras.json.')
+    if weights is not None:
         model.load_weights(weights)
 
 

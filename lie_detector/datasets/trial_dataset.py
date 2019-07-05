@@ -12,8 +12,8 @@ import zipfile
 import h5py
 import numpy as np
 import toml
-import pandas as pd
-from sklearn.model_selection import GroupKFold
+# import pandas as pd
+# from sklearn.model_selection import GroupKFold
 
 from lie_detector.datasets.dataset import _download_raw_dataset, Dataset, _parse_args
 from lie_detector.video_face_detector import generate_cropped_face_video
@@ -67,7 +67,7 @@ class TrialDataset(Dataset):
             print('Balancing classes to reduce amount of data')
             X, y = _sample_to_balance(x_train, y_train)
         self._fix_data_length()
-        self._initialize_fold()
+        # self._initialize_fold()
         # self._subsample()
 
 
@@ -89,11 +89,11 @@ class TrialDataset(Dataset):
         self.groups = np.array(groups)
 
 
-    def _initialize_fold(self):
-        kf = GroupKFold(n_splits=self.num_folds)
-        for trn_index, val_index in kf.split(self.X, groups=self.groups):
-            self.trn_folds.append(trn_index)
-            self.val_folds.append(val_index)
+    # def _initialize_fold(self):
+    #     kf = GroupKFold(n_splits=self.num_folds)
+    #     for trn_index, val_index in kf.split(self.X, groups=self.groups):
+    #         self.trn_folds.append(trn_index)
+    #         self.val_folds.append(val_index)
 
 
     def set_fold(self, index):
@@ -143,17 +143,17 @@ def _process_raw_dataset(filename: str):
     X_fnames = []
     y = []
     microexpressions = []
-    annotation_path = os.path.join(str(RAW_DATA_DIRNAME), ANNOTATION_CSV_FILENAME)
-    annotation_csv = pd.read_csv(annotation_path)
+    # annotation_path = os.path.join(str(RAW_DATA_DIRNAME), ANNOTATION_CSV_FILENAME)
+    # annotation_csv = pd.read_csv(annotation_path)
 
-    for f in os.listdir('TrialData/Clips/Deceptive'):
-        X_fnames.append(os.path.join(str(RAW_DATA_DIRNAME), 'TrialData', 'Clips', 'Deceptive', f))
-        microexpressions.append(list(annotation_csv[annotation_csv.id==f]))
-        y.append(1)
-    for f in os.listdir('TrialData/Clips/Truthful'):
-        X_fnames.append(os.path.join(str(RAW_DATA_DIRNAME), 'TrialData', 'Clips', 'Truthful', f))
-        microexpressions.append(list(annotation_csv[annotation_csv.id==f]))
-        y.append(0)
+    # for f in os.listdir('TrialData/Clips/Deceptive'):
+    #     X_fnames.append(os.path.join(str(RAW_DATA_DIRNAME), 'TrialData', 'Clips', 'Deceptive', f))
+    #     microexpressions.append(list(annotation_csv[annotation_csv.id==f]))
+    #     y.append(1)
+    # for f in os.listdir('TrialData/Clips/Truthful'):
+    #     X_fnames.append(os.path.join(str(RAW_DATA_DIRNAME), 'TrialData', 'Clips', 'Truthful', f))
+    #     microexpressions.append(list(annotation_csv[annotation_csv.id==f]))
+    #     y.append(0)
 
     X = []
     print('\nDetecting face in videos...')
