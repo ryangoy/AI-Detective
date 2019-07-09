@@ -13,4 +13,4 @@ export default class StageSummary extends React.Component {
 
 
 
-//<p>Face tracking finished successfully. A face was detected in <b>{this.state.percent.toFixed(2)}%</b> of frames.</p>
+//<p>Face tracking finished successfully. A face was detected in <b>{this.state.percent}%</b> of frames.</p>

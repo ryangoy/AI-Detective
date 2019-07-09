@@ -38,23 +38,23 @@ plugins:
   - serverless-python-requirements
   - serverless-wsgi
   - serverless-plugin-optimize
-  - serverless-offline
+  # - serverless-offline
   
 custom:
-  serverless-offline:
-    httpsProtocol: "dev-certs"
-    port: 4000
+  # serverless-offline:
+  #   httpsProtocol: "dev-certs"
+  #   port: 4000
   wsgi:
     app: server.app.app
-    packRequirements: false
+    packRequirements: true
   pythonRequirements:
     dockerizePip: true
     slim: false
+    strip: false
     slimPatterns:
       - "**/*.egg-info*"
       - "**/doc"
       - "**/tensorboard"
       - "**/tensorflow/contrib"
       - "**/tests"
-    strip: false
     zip: true

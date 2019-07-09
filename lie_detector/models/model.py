@@ -6,6 +6,7 @@ import numpy as np
 from tensorflow.keras.callbacks import EarlyStopping
 from time import time
 from typing import Dict, Optional
+import boto3
 # from sklearn.metrics import mean_squared_error
 try:
     from wandb.keras import WandbCallback

@@ -56,8 +56,8 @@ def predict_example(vpath, experiment_config_path=None, socketio=None):
         socketio.emit('stage', 'face detection')
     face_cropped = generate_cropped_face_video(vpath)
 
-    if face_cropped is None:
-        return -1
+    if type(face_cropped) is float or type(face_cropped) is int:
+        return face_cropped
 
     X = fix_data_length(face_cropped)
     
@@ -80,7 +80,7 @@ def predict_example(vpath, experiment_config_path=None, socketio=None):
     #     socketio.emit('stage', {'stage': 'done'})
     if socketio:
         socketio.emit('stage', 'completed')
-    return np.mean(preds)
+    return np.mean(preds)*100
 
 
 def fix_data_length(x):

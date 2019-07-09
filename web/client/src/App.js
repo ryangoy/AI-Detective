@@ -11,6 +11,9 @@ import Pipeline from "./components/Pipeline"
 // import openSocket from 'socket.io-client'
 
 const endpoint = 'https://nwmh21ywva.execute-api.us-west-1.amazonaws.com/dev1'
+// const endpoint = 'http://0.0.0.0:8000'
+
+const vidpoint = endpoint + '/get_video'
 
 // const socket = openSocket('http://0.0.0.0:8000');
 
@@ -27,6 +30,7 @@ class App extends Component {
       show_spinner: false,
       show_result: false,
       test: 'not set',
+      url: null
       // stage: 'none',
       // completed_stages: []
     }
@@ -67,15 +71,58 @@ class App extends Component {
     return true
   }
 
+  getVideoFile = () => {
+    // const vfile = axios.get(endpoint + "/get_video/" + this.state.fileField)
+    // return vfile
+    return vidpoint + '/' + this.state.fileField
+  }
+
+
+  setStateAsync(state) {
+    return new Promise((resolve) => {
+      this.setState(state, resolve)
+    })
+  }
+
+  async onClickHandler(file) {
+
+    await this.setStateAsync({//show_file_upload_progress: true,
+                   show_spinner: true
+                   // stage: 'none',
+                   // completed_stages: []
+                 })
+
+    let presigned_post = await axios.get(endpoint+"/get_presigned_post/" + this.state.fileField)
+    let options = { 
+              headers: {'Content-Type': 'mp4'},
+              // onUploadProgress: ProgressEvent => {
+              //   this.setState({
+              //     loaded: (ProgressEvent.loaded / ProgressEvent.total*100),
+              //   })
+              // }
+            }
+
+    await axios.put(presigned_post.data.url, file, options)
+    let predict_res = await axios.get(endpoint+"/predict/" + this.state.fileField)
+    let percent = predict_res.data['percent']
+    this.setState({percent:percent, show_spinner:false, show_result:true})
+
+    return true
+    
+  }
+
+
+
+
   // when we press the upload button
-  onClickHandler = () => {
+  onClickHandler_old = () => {
 
     if (this.state.selectedFile == null) {
       console.log('File is null')
     }
     else {
       this.setState({show_file_upload_progress: true,
-                     show_spinner: true,
+                     show_spinner: true
                      // stage: 'none',
                      // completed_stages: []
                     })
@@ -91,10 +138,10 @@ class App extends Component {
         }
 
       }).then(res => {
-        const percent = res.data['percent']*100;
+        const percent = res.data['percent'];
         return percent
       }).then(percent => {
-        this.setState({percent, show_spinner:false, show_result:true});
+        this.setState({percent:percent, show_spinner:false, show_result:true});
       }).catch(error => {
         console.log(error.response)
       })
@@ -128,12 +175,12 @@ class App extends Component {
         <form action="/upload" method="POST" encType="multipart/form-data">
           <div className="input-group col-md-5 center-div">
             <div className="custom-file">
-              <input type="file" className="custom-file-input" id="inputGroupFile02" onChange={this.onChangeHandler}
+              <input type="file" className="custom-file-input" id="inputGroupFile02" onChange={this.onChangeHandler} 
                 aria-describedby="inputGroupFileAddon01"/>
               <label className="custom-file-label">{this.state.fileField}</label>
             </div>
             <div className="input-group-append">
-              <button type="button" className="input-group-append btn btn-primary btn-block" onClick={this.onClickHandler}>Upload</button>
+              <button type="button" className="input-group-append btn btn-primary btn-block" onClick={() => this.onClickHandler(this.state.selectedFile)}>Upload</button>
             </div>
           </div>
         </form>

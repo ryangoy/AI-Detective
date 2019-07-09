@@ -8,6 +8,7 @@
     "react": "^16.8.6",
     "react-addons-css-transition-group": "^15.6.2",
     "react-dom": "^16.8.6",
+    "react-router-dom": "^5.0.1",
     "react-scripts": "3.0.1",
     "react-spinners": "^0.5.4",
     "react-toastify": "^5.2.1",

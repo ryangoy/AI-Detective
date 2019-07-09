@@ -1,7 +1,7 @@
 import React from "react"
 import Spinner from "./Spinner"
-import StageSummary from "./StageSummary"
-import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
+// import StageSummary from "./StageSummary"
+// import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 
 export default class Pipeline extends React.Component {
     

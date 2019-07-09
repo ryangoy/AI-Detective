@@ -20,8 +20,6 @@ flask = "*"
 flask-cors = "*"
 opencv-python-headless = "*"
 toml = "*"
-tqdm = "*"
-flask-socketio = "*"
 boto3 = "*"
 
 [requires]

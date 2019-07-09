@@ -28,8 +28,6 @@ def generate_cropped_face_video(vpath, fps=10):
 
     face_cascade = cv2.CascadeClassifier(HAARCASCADE_PATH)
     cap = cv2.VideoCapture(vpath)
-    if not cap.isOpened():
-        return None
     inp_fps = cap.get(cv2.CAP_PROP_FPS)
     inp_frame_time = 1000.0/inp_fps
     frame_time = 1000.0/fps

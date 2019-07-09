@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "aws-sdk": "^2.488.0",
     "babel-standalone": "^6.26.0",
     "bootstrap": "^4.3.1",
     "cors": "^2.8.5",

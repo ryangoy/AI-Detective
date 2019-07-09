@@ -1,6 +1,6 @@
 """Flask web server for serving lie_detector predictions"""
 
-from flask import Flask, request, jsonify, flash, redirect, url_for
+from flask import Flask, request, jsonify, flash, redirect, url_for, send_from_directory
 from werkzeug.utils import secure_filename
 from flask_cors import CORS, cross_origin
 # from flask_socketio import SocketIO, emit
@@ -10,13 +10,14 @@ import time
 sys.path.insert(0, './')
 sys.path.insert(0, '../')
 from lie_detector.predict import predict_example
-
 from tensorflow.keras import backend
+import boto3
+from botocore.exceptions import ClientError
 
 ALLOWED_EXTENSIONS = set(['mp4'])
 
-
 app = Flask(__name__)
+
 cors = CORS(app)
 
 # socketio = SocketIO(app)
@@ -37,19 +38,63 @@ def index():
 def test():
     return 'Also up and running.'
 
-
-
-@app.route('/predict', methods=['POST'])
+@app.route('/get_video/<filename>')
 @cross_origin()
-def face_percent():
+def uploaded_file(filename):
+    download_from_s3(filename)
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename, as_attachment=True)
+
+
+@app.route('/get_presigned_post/<filename>', methods=['GET'])
+@cross_origin()
+def create_presigned_post(filename):
+    """Generate a presigned URL S3 POST request to upload a file
+
+    :param bucket_name: string
+    :param object_name: string
+    :param fields: Dictionary of prefilled form fields
+    :param conditions: List of conditions to include in the policy
+    :param expiration: Time in seconds for the presigned URL to remain valid
+    :return: Dictionary with the following keys:
+        url: URL to post to
+        fields: Dictionary of form fields and values to submit with the POST
+    :return: None if error.
+    """
+    params = {
+        'Bucket': 'cydm-videos',
+        'Key': filename,
+        'ContentType': 'mp4',
+        'ACL': 'public-read'
+    }
+    
+    expiration=100
+    # Generate a presigned S3 POST URL
+    s3_client = boto3.client('s3')
+    try:
+        response = s3_client.generate_presigned_url('put_object',
+                                                    Params=params,
+                                                    ExpiresIn=expiration)
+    except ClientError as e:
+        print(e)
+        return None
+
+    # The response contains the presigned URL and required fields
+    return jsonify({'url':response})
+
+
+@app.route('/predict/<filename>', methods=['GET'])
+@cross_origin()
+def face_percent(filename):
+    download_from_s3(filename)
     # socketio.emit('stage', 'video upload protocol')
-    vpath = _load_video()
+    # vpath = _load_video()
+    vpath = '/tmp/' + filename
     percent = predict_example(vpath)#, socketio)
     
-    response = jsonify({'percent': float(percent)})
-    # response.headers['Access-Control-Allow-Credentials'] = True
-    # response.headers['Access-Control-Allow-Origin'] = 'http://canyoudeceive.me'
-    # response.headers['Access-Control-Allow-Headers'] = '*'
+    response = jsonify({'percent': percent})
+
+    # response = jsonify({'percent': float(percent)})
+    
     return response
 
 def _allowed_file(fname):
@@ -58,25 +103,45 @@ def _allowed_file(fname):
 
 def _load_video():
 
-    if request.method == 'POST':
-        if 'file' not in request.files:
-            print('No file part')
-            return None
-        file = request.files['file']
-        if file.filename == '':
-            print('No selected file')
-            return None
-        if file and _allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            fpath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            file.save(fpath)
+    if 'file' not in request.files:
+        print('No file part')
+        return None
+    file = request.files['file']
+    if file.filename == '':
+        print('No selected file')
+        return None
+    if file and _allowed_file(file.filename):
 
-            return fpath
+        # file.seek(0, os.SEEK_END)
+        # print('file length at begin of server is {}'.format(file.tell()))
+        # filename = secure_filename(file.filename)
+        filename = file.filename
+        fpath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(fpath)
+        upload_to_s3(filename)
+        for f in os.listdir(app.config['UPLOAD_FOLDER']):
+            print("{} has file size {}".format(f, os.path.getsize(os.path.join(app.config['UPLOAD_FOLDER'], f))))
+
+        return fpath
+
+def upload_to_s3(fname):
+    print('Uploading {} to s3...'.format(fname))
+    bucket = 'cydm-videos'
+    saved_path = os.path.join('/tmp', fname)
+    s3_client = boto3.client('s3')
+    s3_client.upload_file(saved_path, bucket, fname)
 
 
-# def main():
-#     socketio.run(app, debug=False, host='0.0.0.0', port=8000)  # nosec
+def download_from_s3(fname):
+    print('Downloading {} from s3...'.format(fname))
+    bucket = 'cydm-videos'
+    save_path = os.path.join('/tmp', fname)
+    s3_client = boto3.client('s3')
+    s3_client.download_file(bucket, fname, save_path)
+
+def main():
+    app.run(host='0.0.0.0', port=8000)  # nosec
 
 
-# if __name__ == '__main__':
-#     main()
+if __name__ == '__main__':
+    main()

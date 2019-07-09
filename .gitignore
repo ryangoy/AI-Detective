@@ -12,6 +12,7 @@
 
 .ipynb_checkpoints/
 .serverless/
+.requirements/
 cache/
 node_modules/
 wandb/
