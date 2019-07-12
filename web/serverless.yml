@@ -4,7 +4,7 @@ frameworkVersion: ">=1.2.0 <2.0.0"
 
 package:
   exclude:
-    - "**/*"
+    - "**"
   include:
     - ../lie_detector/models/**
     - ../lie_detector/networks/**
@@ -23,8 +23,8 @@ provider:
   stage: dev1
   region: us-west-1
   runtime: python3.6
-  memorysize: 3072
-  timeout: 60
+  memorysize: 3008
+  timeout: 900
   versionFunctions: false
 
 functions:
@@ -44,12 +44,16 @@ custom:
   # serverless-offline:
   #   httpsProtocol: "dev-certs"
   #   port: 4000
+  optimize:
+    disable: false
+    exclude: "aws-sdk"
   wsgi:
     app: server.app.app
-    packRequirements: true
+    packRequirements: false
   pythonRequirements:
+    usePipenv: false
     dockerizePip: true
-    slim: false
+    slim: true
     strip: false
     slimPatterns:
       - "**/*.egg-info*"

@@ -13,6 +13,7 @@ import time
 
 def predict_example(vpath, experiment_config_path=None, socketio=None):
 
+
     if experiment_config_path is not None:
         with open(experiment_config_path) as f:
 
@@ -80,6 +81,8 @@ def predict_example(vpath, experiment_config_path=None, socketio=None):
     #     socketio.emit('stage', {'stage': 'done'})
     if socketio:
         socketio.emit('stage', 'completed')
+
+
     return np.mean(preds)*100
 
 

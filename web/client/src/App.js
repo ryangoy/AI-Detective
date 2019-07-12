@@ -13,7 +13,7 @@ import Pipeline from "./components/Pipeline"
 const endpoint = 'https://nwmh21ywva.execute-api.us-west-1.amazonaws.com/dev1'
 // const endpoint = 'http://0.0.0.0:8000'
 
-const vidpoint = endpoint + '/get_video'
+const vidpoint = endpoint + '/get-video'
 
 // const socket = openSocket('http://0.0.0.0:8000');
 
@@ -30,8 +30,8 @@ class App extends Component {
       show_spinner: false,
       show_result: false,
       test: 'not set',
-      url: null
-      // stage: 'none',
+      url: null,
+      stage: 'none'
       // completed_stages: []
     }
     // this.subscribeToPipelineUpdates();
@@ -92,7 +92,7 @@ class App extends Component {
                    // completed_stages: []
                  })
 
-    let presigned_post = await axios.get(endpoint+"/get_presigned_post/" + this.state.fileField)
+    let presigned_post = await axios.get(endpoint+"/get-presigned-post/" + this.state.fileField)
     let options = { 
               headers: {'Content-Type': 'mp4'},
               // onUploadProgress: ProgressEvent => {
@@ -103,16 +103,37 @@ class App extends Component {
             }
 
     await axios.put(presigned_post.data.url, file, options)
-    let predict_res = await axios.get(endpoint+"/predict/" + this.state.fileField)
-    let percent = predict_res.data['percent']
-    this.setState({percent:percent, show_spinner:false, show_result:true})
+    try {
+      axios.get(endpoint+"/predict/" + this.state.fileField, {timeout: 9000000})
+    }
+    catch(error) {
+      if (error.response && error.response.status === 504) {
+        console.log("30 second API Gateway timeout. Function continuing to run.");
+      } else {
+        console.log(error)
+      } 
+    }
+
+
+    this.timer = setInterval(() => this.pollStage(this.state.fileField), 1000)
 
     return true
-    
   }
 
 
-
+  async pollStage(filename) {
+    let response = await axios.get(endpoint+"/poll-stage/"+filename)
+    let percent = response.data['prediction']
+    let stage = response.data['stage']
+    if (stage === 'finished') {
+      await this.setStateAsync({percent:percent, show_spinner:false, show_result:true})
+      clearInterval(this.timer)
+      this.timer = null
+    } else{
+      await this.setStateAsync({stage:stage})
+    }
+    
+  }
 
   // when we press the upload button
   onClickHandler_old = () => {

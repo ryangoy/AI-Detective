@@ -13,6 +13,7 @@ from lie_detector.predict import predict_example
 from tensorflow.keras import backend
 import boto3
 from botocore.exceptions import ClientError
+from decimal import Decimal
 
 ALLOWED_EXTENSIONS = set(['mp4'])
 
@@ -23,6 +24,10 @@ cors = CORS(app)
 # socketio = SocketIO(app)
 
 app.config['UPLOAD_FOLDER'] = '/tmp'
+
+dynamodb = boto3.resource('dynamodb')
+
+table = dynamodb.Table('cydm-actions')
 
 # Tensorflow bug: https://github.com/keras-team/keras/issues/2397
 # with backend.get_session().graph.as_default() as _:
@@ -38,14 +43,14 @@ def index():
 def test():
     return 'Also up and running.'
 
-@app.route('/get_video/<filename>')
+@app.route('/get-video/<filename>')
 @cross_origin()
 def uploaded_file(filename):
     download_from_s3(filename)
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename, as_attachment=True)
 
 
-@app.route('/get_presigned_post/<filename>', methods=['GET'])
+@app.route('/get-presigned-post/<filename>', methods=['GET'])
 @cross_origin()
 def create_presigned_post(filename):
     """Generate a presigned URL S3 POST request to upload a file
@@ -82,20 +87,56 @@ def create_presigned_post(filename):
     return jsonify({'url':response})
 
 
-@app.route('/predict/<filename>', methods=['GET'])
+@app.route('/predict/<fname>', methods=['GET'])
 @cross_origin()
-def face_percent(filename):
-    download_from_s3(filename)
+def face_percent(fname):
+    table.put_item(
+        Item={
+            'id': fname,
+            'stage': 'file upload',
+            'prediction': None
+        }
+    )
+
+    download_from_s3(fname)
     # socketio.emit('stage', 'video upload protocol')
     # vpath = _load_video()
-    vpath = '/tmp/' + filename
+    vpath = '/tmp/' + fname
     percent = predict_example(vpath)#, socketio)
     
-    response = jsonify({'percent': percent})
+    # response = jsonify({'percent': percent})
 
     # response = jsonify({'percent': float(percent)})
-    
-    return response
+    # response = table.get_item(
+    #     Key={
+    #         'id': filename,
+    #     })
+    # item = response['Item']
+    table.update_item(
+        Key={
+            'id': fname
+        },
+        UpdateExpression='SET prediction = :val1, stage= :val2',
+        ExpressionAttributeValues={
+            ':val1': Decimal(percent),
+            ':val2': 'finished'
+        }
+    )
+    return jsonify({'status': 'success'})
+
+@app.route('/poll-stage/<fname>', methods=['GET'])
+@cross_origin()
+def poll_status(fname):
+    response = table.get_item(
+        Key={
+            'id':fname
+        })
+    item = response['Item']
+    pred = None
+    if item['prediction']:
+        pred = float(item['prediction'])
+
+    return jsonify({'stage': str(item['stage']), 'prediction': pred}) 
 
 def _allowed_file(fname):
     return '.' in fname and fname.split('.')[1].lower() in ALLOWED_EXTENSIONS

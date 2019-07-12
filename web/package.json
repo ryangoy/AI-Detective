@@ -18,7 +18,7 @@
     "react-toastify": "^5.2.0",
     "reactstrap": "^8.0.0",
     "serverless": "^1.46.1",
-    "serverless-python-requirements": "^4.3.0",
+    "serverless-python-requirements": "git+https://github.com/UnitedIncome/serverless-python-requirements.git",
     "serverless-wsgi": "^1.7.2"
   },
   "devDependencies": {
