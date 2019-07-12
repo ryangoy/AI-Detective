@@ -115,7 +115,7 @@ class App extends Component {
     }
 
 
-    this.timer = setInterval(() => this.pollStage(this.state.fileField), 1000)
+    this.timer = setInterval(() => this.pollStage(this.state.fileField), 5000)
 
     return true
   }
