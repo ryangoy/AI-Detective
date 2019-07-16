@@ -5,7 +5,6 @@ from pathlib import Path
 import boto3
 # to do: figure out why lambda cant find utils... and import download_from_S3
 
-
 WEIGHTS_DIRNAME = '/tmp'
 HAARCASCADE_FNAME = 'haarcascade_frontalface_default.xml'
 HAARCASCADE_PATH = os.path.join(WEIGHTS_DIRNAME, HAARCASCADE_FNAME)
@@ -13,13 +12,12 @@ HAARCASCADE_PATH = os.path.join(WEIGHTS_DIRNAME, HAARCASCADE_FNAME)
 def download_from_s3(fname):
     print('Downloading {} from s3...'.format(fname))
     bucket = 'cydm-weights'
-
     save_path = os.path.join('/tmp', fname)
     s3_client = boto3.client('s3')
     s3_client.download_file(bucket, fname, save_path)
 
-def generate_cropped_face_video(vpath, fps=10):
 
+def generate_cropped_face_video(vpath, fps=10):
     if vpath is None:
         return 0.0
 
@@ -62,17 +60,15 @@ def generate_cropped_face_video(vpath, fps=10):
                     x_min = max(0, int(center[0]-dims[0]/2))
                     x_max = min(img.shape[1], int(center[0]+dims[0]/2))
                     cropped_img = img[y_min:y_max, x_min:x_max] 
-                   
-                    # cv2.imshow('cropped_vid', cropped_img)
-                    # cv2.waitKey(50)
                     frames_arr.append(cv2.resize(cropped_img, (224, 224)))
-
 
         frame_time_counter += inp_frame_time
         frame_available, img = cap.read()
 
     cap.release()
+
     return np.array(frames_arr)
+
 
 def _update_rect(center, dims, rect, dims_sampling, smooth_coef=0.9):
     curr_center = rect[:2] + 0.5*rect[2:]
@@ -86,8 +82,8 @@ def _update_rect(center, dims, rect, dims_sampling, smooth_coef=0.9):
         dims = rect[2:]
     return center, dims
 
-def _detect_face(img, face_cascade, prev_center, padding=20, already_grayscale=False):
 
+def _detect_face(img, face_cascade, prev_center, padding=20, already_grayscale=False):
     if already_grayscale:
         gray_img = img
     else:
@@ -111,6 +107,7 @@ def _detect_face(img, face_cascade, prev_center, padding=20, already_grayscale=F
         return np.array(best_face)
     else:
         return np.array([])
+
 
 if __name__ == '__main__':
     print(generate_cropped_face_video('/home/ryan/Desktop/vid.mp4'))

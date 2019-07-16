@@ -38,12 +38,8 @@ plugins:
   - serverless-python-requirements
   - serverless-wsgi
   - serverless-plugin-optimize
-  # - serverless-offline
   
 custom:
-  # serverless-offline:
-  #   httpsProtocol: "dev-certs"
-  #   port: 4000
   optimize:
     disable: false
     exclude: "aws-sdk"

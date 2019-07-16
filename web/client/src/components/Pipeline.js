@@ -1,29 +1,8 @@
 import React from "react"
 import Spinner from "./Spinner"
-// import StageSummary from "./StageSummary"
-// import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 
 export default class Pipeline extends React.Component {
     
-
-    // getListOfItems() {
-    //     var items = []
-    //     for (var i=0; i<this.props.completed_stages.length; i++) {
-    //             items.push(<StageSummary stage={this.props.completed_stages[i]} id={i} />)
-    //         }
-    //     return items
-    // }
-    
-    // renderItems() {
-    //     return (
-    //         <div>
-    //             <ReactCSSTransitionGroup transitionName="example">
-    //                 {this.getListOfItems()}
-    //             </ReactCSSTransitionGroup>
-    //         </div>
-    //     )
-    // }
-
     renderSpinner(){
         return (
             <div className={this.props.show_spinner?'fadeInSpinner':'fadeOutSpinner'}>
@@ -32,13 +11,43 @@ export default class Pipeline extends React.Component {
         )
     }
 
+    registerTruthful = () => {
+
+    }
+
+    registerDeceptive = () => {
+
+    }
+
+    printConfidence(){
+        if (this.props.percent > 50.0) {
+            return <h3 className="form-group col-md-5 center-div mt-3">
+                    The verdict is in. You're lying with <b>{this.props.percent.toFixed(1)}%</b> confidence.
+                   </h3>
+        } else {
+            return <h3 className="form-group col-md-5 center-div mt-3">
+                   The verdict is in. You're telling the truth with <b>{(100-this.props.percent).toFixed(1)}%</b> confidence.
+                   </h3>
+        }
+    }
+
+    askForFeedback() {
+        return (
+            <div className="form-group col-md-5 center-div mt-3">
+                <p>Please give us feedback!</p> 
+                <p>Was your video...</p>
+                <button type="button" className="text-center btn btn-primary btn-block" onClick={this.registerTruthful}>Truthful</button>
+                <button type="button" className="text-center btn btn-primary btn-block" onClick={this.registerDeceptive}>Deceptive</button>
+            </div>
+        )
+    }
+
     renderResult(){
         return (
             <div className={this.props.show_result?'fadeInText':'fadeOutText'}>
-                <h3 className="form-group col-md-5 center-div mt-3">
-                    The verdict is in. You're lying with <b>{this.props.percent.toFixed(2)}%</b> confidence, 
-                    or telling the truth with <b>{(100-this.props.percent).toFixed(2)}%</b> confidence.
-                </h3>
+
+                {this.printConfidence()}
+                {this.askForFeedback()}
             </div>
         )
     }

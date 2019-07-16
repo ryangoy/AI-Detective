@@ -1,6 +1,5 @@
 import React, { Component } from "react";
 import axios from 'axios';
-
 import { Progress } from 'reactstrap';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -8,14 +7,8 @@ import './App.css'
 import Pipeline from "./components/Pipeline"
 
 
-// import openSocket from 'socket.io-client'
-
-const endpoint = 'https://nwmh21ywva.execute-api.us-west-1.amazonaws.com/dev1'
-// const endpoint = 'http://0.0.0.0:8000'
-
-const vidpoint = endpoint + '/get-video'
-
-// const socket = openSocket('http://0.0.0.0:8000');
+// const endpoint = 'https://nwmh21ywva.execute-api.us-west-1.amazonaws.com/dev1'
+const endpoint = 'http://0.0.0.0:8000'
 
 class App extends Component {
 
@@ -31,29 +24,9 @@ class App extends Component {
       show_result: false,
       test: 'not set',
       url: null,
-      stage: 'none'
-      // completed_stages: []
+      stage: 'initialization'
     }
-    // this.subscribeToPipelineUpdates();
   }
-
-
-  // subscribeToPipelineUpdates = () => {
-  //   socket.on('stage', (s) => {
-        
-
-  //       if (this.state.stage !== 'none') {
-  //           this.setState({completed_stages:this.state.completed_stages.concat([this.state.stage])})
-  //       } else {
-  //           this.setState({show_spinner:true})
-  //       }
-  //       this.setState({stage:s})
-  //       if (s === 'completed') {
-  //           this.setState({show_result:true})
-  //       }
-
-  //   });
-  // } 
 
   // when a file is selected
   onChangeHandler = (event) =>{
@@ -66,17 +39,10 @@ class App extends Component {
     return true
   }
 
-  testHandler = () => {
-    axios.get(endpoint+"/test").then(res=> {this.setState({test: res.data})})
-    return true
+  onClickHandler = () => {
+    this.setState({show_spinner: true})
+    this.onClickHandlerAsync(this.state.selectedFile)
   }
-
-  getVideoFile = () => {
-    // const vfile = axios.get(endpoint + "/get_video/" + this.state.fileField)
-    // return vfile
-    return vidpoint + '/' + this.state.fileField
-  }
-
 
   setStateAsync(state) {
     return new Promise((resolve) => {
@@ -84,89 +50,41 @@ class App extends Component {
     })
   }
 
-  async onClickHandler(file) {
+  async onClickHandlerAsync(file) {
 
-    await this.setStateAsync({//show_file_upload_progress: true,
-                   show_spinner: true
-                   // stage: 'none',
-                   // completed_stages: []
-                 })
-
-    let presigned_post = await axios.get(endpoint+"/get-presigned-post/" + this.state.fileField)
-    let options = { 
-              headers: {'Content-Type': 'mp4'},
-              // onUploadProgress: ProgressEvent => {
-              //   this.setState({
-              //     loaded: (ProgressEvent.loaded / ProgressEvent.total*100),
-              //   })
-              // }
-            }
-
-    await axios.put(presigned_post.data.url, file, options)
     try {
-      axios.get(endpoint+"/predict/" + this.state.fileField, {timeout: 9000000})
+      let presigned_post = await axios.get(endpoint+"/get-presigned-post/" + this.state.fileField)
+      let options = {headers: {'Content-Type': 'mp4'}}
+
+      await axios.put(presigned_post.data.url, file, options)
+      await axios.get(endpoint+"/predict/" + this.state.fileField, {timeout: 9000000})
+      
+      this.timer = setInterval(() => this.pollStage(this.state.fileField), 2000)
+    } catch(error) {
+      console.log('Request to server errored out. Not starting polling process.')
+      this.setStateAsync({show_spinner: false})
     }
-    catch(error) {
-      if (error.response && error.response.status === 504) {
-        console.log("30 second API Gateway timeout. Function continuing to run.");
-      } else {
-        console.log(error)
-      } 
-    }
-
-
-    this.timer = setInterval(() => this.pollStage(this.state.fileField), 5000)
-
     return true
   }
 
-
   async pollStage(filename) {
-    let response = await axios.get(endpoint+"/poll-stage/"+filename)
-    let percent = response.data['prediction']
-    let stage = response.data['stage']
-    if (stage === 'finished') {
-      await this.setStateAsync({percent:percent, show_spinner:false, show_result:true})
+    try{
+      let response = await axios.get(endpoint+"/poll-stage/"+filename)
+      
+      let percent = response.data['prediction']
+      let stage = response.data['stage']
+      if (stage === 'finished') {
+        await this.setStateAsync({percent:percent, show_spinner:false, show_result:true})
+        clearInterval(this.timer)
+        this.timer = null
+      } else{
+        await this.setStateAsync({stage:stage})
+      }
+    } catch(error) {
+      console.log('Cannot poll from server. Stopping polling.')
       clearInterval(this.timer)
       this.timer = null
-    } else{
-      await this.setStateAsync({stage:stage})
-    }
-    
-  }
-
-  // when we press the upload button
-  onClickHandler_old = () => {
-
-    if (this.state.selectedFile == null) {
-      console.log('File is null')
-    }
-    else {
-      this.setState({show_file_upload_progress: true,
-                     show_spinner: true
-                     // stage: 'none',
-                     // completed_stages: []
-                    })
-      const data = new FormData() 
-      data.append('file', this.state.selectedFile)
-
-      axios.post(endpoint + "/predict", data, {
-        
-        onUploadProgress: ProgressEvent => {
-          this.setState({
-               loaded: (ProgressEvent.loaded / ProgressEvent.total*100),
-          })
-        }
-
-      }).then(res => {
-        const percent = res.data['percent'];
-        return percent
-      }).then(percent => {
-        this.setState({percent:percent, show_spinner:false, show_result:true});
-      }).catch(error => {
-        console.log(error.response)
-      })
-
+      this.setStateAsync({show_spinner: false})
     }
   }
 
@@ -201,7 +119,7 @@ class App extends Component {
               <label className="custom-file-label">{this.state.fileField}</label>
             </div>
             <div className="input-group-append">
-              <button type="button" className="input-group-append btn btn-primary btn-block" onClick={() => this.onClickHandler(this.state.selectedFile)}>Upload</button>
+              <button type="button" className="input-group-append btn btn-primary btn-block" onClick={this.onClickHandler}>Upload</button>
             </div>
           </div>
         </form>
@@ -218,9 +136,8 @@ class App extends Component {
         }
         <div>
         <Pipeline 
-                  // stage={this.state.stage} 
-                  // completed_stages={this.state.completed_stages}
                   show_spinner={this.state.show_spinner}
+                  stage={this.state.stage} 
                   show_result={this.state.show_result}
                   percent={this.state.percent}/>
         </div>

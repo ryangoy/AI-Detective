@@ -3,7 +3,6 @@
 from flask import Flask, request, jsonify, flash, redirect, url_for, send_from_directory
 from werkzeug.utils import secure_filename
 from flask_cors import CORS, cross_origin
-# from flask_socketio import SocketIO, emit
 import os
 import sys
 import time
@@ -15,19 +14,13 @@ import boto3
 from botocore.exceptions import ClientError
 from decimal import Decimal
 
-ALLOWED_EXTENSIONS = set(['mp4'])
-
 app = Flask(__name__)
-
 cors = CORS(app)
-
-# socketio = SocketIO(app)
-
-app.config['UPLOAD_FOLDER'] = '/tmp'
-
 dynamodb = boto3.resource('dynamodb')
-
 table = dynamodb.Table('cydm-actions')
+
+ALLOWED_EXTENSIONS = set(['mp4'])
+app.config['UPLOAD_FOLDER'] = '/tmp'
 
 # Tensorflow bug: https://github.com/keras-team/keras/issues/2397
 # with backend.get_session().graph.as_default() as _:
@@ -38,16 +31,6 @@ table = dynamodb.Table('cydm-actions')
 @app.route('/')
 def index():
     return 'Flask server up and running!'
-
-@app.route('/test')
-def test():
-    return 'Also up and running.'
-
-@app.route('/get-video/<filename>')
-@cross_origin()
-def uploaded_file(filename):
-    download_from_s3(filename)
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filename, as_attachment=True)
 
 
 @app.route('/get-presigned-post/<filename>', methods=['GET'])
@@ -97,21 +80,9 @@ def face_percent(fname):
             'prediction': None
         }
     )
-
     download_from_s3(fname)
-    # socketio.emit('stage', 'video upload protocol')
-    # vpath = _load_video()
     vpath = '/tmp/' + fname
-    percent = predict_example(vpath)#, socketio)
-    
-    # response = jsonify({'percent': percent})
-
-    # response = jsonify({'percent': float(percent)})
-    # response = table.get_item(
-    #     Key={
-    #         'id': filename,
-    #     })
-    # item = response['Item']
+    percent = predict_example(vpath, table=table, fname=fname)#, socketio)
     table.update_item(
         Key={
             'id': fname
@@ -124,6 +95,7 @@ def face_percent(fname):
     )
     return jsonify({'status': 'success'})
 
+
 @app.route('/poll-stage/<fname>', methods=['GET'])
 @cross_origin()
 def poll_status(fname):
@@ -135,15 +107,14 @@ def poll_status(fname):
     pred = None
     if item['prediction']:
         pred = float(item['prediction'])
-
     return jsonify({'stage': str(item['stage']), 'prediction': pred}) 
+
 
 def _allowed_file(fname):
     return '.' in fname and fname.split('.')[1].lower() in ALLOWED_EXTENSIONS
 
 
 def _load_video():
-
     if 'file' not in request.files:
         print('No file part')
         return None
@@ -152,18 +123,14 @@ def _load_video():
         print('No selected file')
         return None
     if file and _allowed_file(file.filename):
-
-        # file.seek(0, os.SEEK_END)
-        # print('file length at begin of server is {}'.format(file.tell()))
-        # filename = secure_filename(file.filename)
         filename = file.filename
         fpath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(fpath)
         upload_to_s3(filename)
         for f in os.listdir(app.config['UPLOAD_FOLDER']):
             print("{} has file size {}".format(f, os.path.getsize(os.path.join(app.config['UPLOAD_FOLDER'], f))))
-
         return fpath
+
 
 def upload_to_s3(fname):
     print('Uploading {} to s3...'.format(fname))
@@ -179,6 +146,7 @@ def download_from_s3(fname):
     save_path = os.path.join('/tmp', fname)
     s3_client = boto3.client('s3')
     s3_client.download_file(bucket, fname, save_path)
+
 
 def main():
     app.run(host='0.0.0.0', port=8000)  # nosec
